@@ -26,6 +26,7 @@ async function bootstrap() {
     swagger_1.SwaggerModule.setup('api/docs', app, document);
     const port = Number(process.env.PORT) || 3000;
     await app.listen(port, '0.0.0.0');
+    console.log(`OEMS API listening on port ${port}`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map
