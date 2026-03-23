@@ -9,7 +9,7 @@ export const CreateExamPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const { register, control, handleSubmit, formState: { errors } } = useForm({
+  const { register, control, handleSubmit } = useForm({
     defaultValues: {
       title: '',
       description: '',

@@ -3,10 +3,8 @@ import { ExamsService } from './exams.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { Role } from '@prisma/client';
-import { Response } from 'express';
-import { Prisma } from '@prisma/client'; // Added import for Prisma types
-import { Request } from '@nestjs/common'; // Added import for Request
+import { Prisma, Role } from '@prisma/client';
+import type { Response } from 'express';
 
 @Controller('exams')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -25,7 +23,7 @@ export class ExamsController {
 
   @Post()
   @Roles(Role.ADMIN, Role.INSTRUCTOR)
-  async create(@Body() createExamDto: Prisma.ExamCreateInput, @Request() req: any) { // Modified type of createExamDto
+  async create(@Body() createExamDto: Prisma.ExamCreateInput, @Req() req: any) {
     return this.examsService.create({
       ...createExamDto,
       instructor: { connect: { id: req.user.userId } },

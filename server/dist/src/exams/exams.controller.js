@@ -19,8 +19,6 @@ const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const roles_guard_1 = require("../auth/roles.guard");
 const roles_decorator_1 = require("../auth/roles.decorator");
 const client_1 = require("@prisma/client");
-const client_2 = require("@prisma/client");
-const common_2 = require("@nestjs/common");
 let ExamsController = class ExamsController {
     examsService;
     constructor(examsService) {
@@ -75,7 +73,7 @@ __decorate([
     (0, common_1.Post)(),
     (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.INSTRUCTOR),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_2.Request)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
