@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
+enum QuestionType {
+  MCQ
+  TRUE_FALSE
+  THEORY
+}
+
+enum AttemptStatus {
+  STARTED
+  SUBMITTED
+  GRADED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  name          String
+  password      String
+  role          Role           @default(STUDENT)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  examsCreated  Exam[]         @relation("InstructorExams")
+  examAttempts  ExamAttempt[]
+}
+
+model Exam {
+  id            String         @id @default(uuid())
+  title         String
+  description   String?
+  duration      Int            // in minutes
+  startTime     DateTime?
+  endTime       DateTime?
+  isPublished   Boolean        @default(false)
+  randomized    Boolean        @default(false)
+  passPercentage Int           @default(40)
+  
+  instructorId  String
+  instructor    User           @relation("InstructorExams", fields: [instructorId], references: [id])
+  
+  questions     Question[]
+  attempts      ExamAttempt[]
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Question {
+  id            String         @id @default(uuid())
+  type          QuestionType
+  content       String
+  options       Json?          // For MCQ/True-False: Array of objects [{id, text}]
+  answer        String         // For MCQ: option id, True/False: "true"/"false", Theory: keyword-based or manual
+  points        Int            @default(1)
+  
+  examId        String
+  exam          Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  
+  studentAnswers StudentAnswer[]
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model ExamAttempt {
+  id            String         @id @default(uuid())
+  startTime     DateTime       @default(now())
+  submitTime    DateTime?
+  score         Float          @default(0)
+  status        AttemptStatus  @default(STARTED)
+  
+  userId        String
+  user          User           @relation(fields: [userId], references: [id])
+  
+  examId        String
+  exam          Exam           @relation(fields: [examId], references: [id])
+  
+  answers       StudentAnswer[]
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model StudentAnswer {
+  id            String         @id @default(uuid())
+  response      String         // For MCQ: option id, True/False: "true"/"false", Theory: text
+  pointsEarned  Float          @default(0)
+  feedback      String?
+  
+  attemptId     String
+  attempt       ExamAttempt    @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  
+  questionId    String
+  question      Question       @relation(fields: [questionId], references: [id])
+}
