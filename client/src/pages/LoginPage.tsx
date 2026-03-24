@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import api from '../services/api';
 import { useAuthStore } from '../store/authStore';
-import { LogIn } from 'lucide-react';
+import { Eye, EyeOff, LogIn } from 'lucide-react';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Email, Phone, or ID Number is required'),
@@ -20,6 +20,7 @@ export const LoginPage = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
   const [error, setError] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const {
     register,
