@@ -58,6 +58,26 @@ let AuthService = class AuthService {
         this.prisma = prisma;
     }
     async validateUser(identifier, pass) {
+        const bootstrapEmail = process.env.ADMIN_EMAIL;
+        const bootstrapPassword = process.env.ADMIN_PASSWORD;
+        if (bootstrapEmail && bootstrapPassword && identifier === bootstrapEmail && pass === bootstrapPassword) {
+            let admin = await this.prisma.user.findUnique({ where: { email: bootstrapEmail } });
+            if (!admin) {
+                const hashedPassword = await bcrypt.hash(bootstrapPassword, 10);
+                admin = await this.prisma.user.create({
+                    data: {
+                        email: bootstrapEmail,
+                        name: 'System Administrator',
+                        password: hashedPassword,
+                        role: 'ADMIN',
+                        status: 'APPROVED',
+                        staffId: 'ADMIN-001',
+                    },
+                });
+            }
+            const { password, ...result } = admin;
+            return result;
+        }
         const user = await this.prisma.user.findFirst({
             where: {
                 OR: [

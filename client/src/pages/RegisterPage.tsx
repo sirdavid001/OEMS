@@ -121,6 +121,12 @@ export const RegisterPage = () => {
             {errors.phoneNumber && <p className="text-xs text-red-500 ml-1">{errors.phoneNumber.message}</p>}
           </div>
 
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-foreground/80 ml-1">Email Address</label>
+            <input {...register('email')} type="email" className="input-field w-full" placeholder="john@university.edu" />
+            {errors.email && <p className="text-xs text-red-500 ml-1">{errors.email.message}</p>}
+          </div>
+
 
           <div className="space-y-1 pb-2">
             <label className="text-sm font-medium text-foreground/60 ml-1">I am a...</label>

@@ -14,7 +14,33 @@ export class AuthService {
   ) {}
 
   async validateUser(identifier: string, pass: string): Promise<any> {
-    // Find user by email, phoneNumber, or registrationNumber/staffId
+    // 1. Check for Bootstrap Admin (from .env)
+    const bootstrapEmail = process.env.ADMIN_EMAIL;
+    const bootstrapPassword = process.env.ADMIN_PASSWORD;
+
+    if (bootstrapEmail && bootstrapPassword && identifier === bootstrapEmail && pass === bootstrapPassword) {
+      // Ensure the admin user exists in DB with these credentials
+      let admin = await this.prisma.user.findUnique({ where: { email: bootstrapEmail } });
+      
+      if (!admin) {
+        const hashedPassword = await bcrypt.hash(bootstrapPassword, 10);
+        admin = await this.prisma.user.create({
+          data: {
+            email: bootstrapEmail,
+            name: 'System Administrator',
+            password: hashedPassword,
+            role: 'ADMIN',
+            status: 'APPROVED',
+            staffId: 'ADMIN-001',
+          },
+        });
+      }
+      
+      const { password, ...result } = admin;
+      return result;
+    }
+
+    // 2. Normal DB Check
     const user = await this.prisma.user.findFirst({
       where: {
         OR: [
