@@ -71,6 +71,9 @@ export class ExamsController {
     if (req.user.role === Role.STUDENT) {
       return this.examsService.getStudentStats(req.user.userId);
     }
+    if (req.user.role === Role.ADMIN) {
+      return this.examsService.getAdminStats();
+    }
     return this.examsService.getLecturerStats(req.user.userId);
   }
 

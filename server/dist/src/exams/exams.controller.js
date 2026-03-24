@@ -58,6 +58,9 @@ let ExamsController = class ExamsController {
         if (req.user.role === client_1.Role.STUDENT) {
             return this.examsService.getStudentStats(req.user.userId);
         }
+        if (req.user.role === client_1.Role.ADMIN) {
+            return this.examsService.getAdminStats();
+        }
         return this.examsService.getLecturerStats(req.user.userId);
     }
     getAttemptDetails(id) {
