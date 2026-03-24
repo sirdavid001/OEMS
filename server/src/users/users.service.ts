@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Role } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
 
 const authUserSelect = {
   id: true,
   email: true,
+  phoneNumber: true,
   name: true,
   password: true,
   role: true,
@@ -23,7 +25,10 @@ type AuthUserRecord = Prisma.UserGetPayload<{
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async findByEmail(email: string): Promise<AuthUserRecord | null> {
     return this.prisma.user.findUnique({
@@ -41,7 +46,10 @@ export class UsersService {
 
   async create(data: Prisma.UserCreateInput): Promise<AuthUserRecord> {
     return this.prisma.user.create({
-      data,
+      data: {
+        ...data,
+        password: '', // Initialize as empty for pending users
+      },
       select: authUserSelect,
     });
   }
@@ -49,7 +57,7 @@ export class UsersService {
   async update(id: string, data: Prisma.UserUpdateInput): Promise<AuthUserRecord> {
     const updateData = { ...data };
     
-    if (data.password && typeof data.password === 'string') {
+    if (data.password && typeof data.password === 'string' && data.password !== '') {
       const bcrypt = require('bcrypt');
       updateData.password = await bcrypt.hash(data.password, 10);
     }
@@ -59,6 +67,15 @@ export class UsersService {
       data: updateData,
       select: authUserSelect,
     });
+  }
+
+  private generateRandomPassword(length: number = 10): string {
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let retVal = "";
+    for (let i = 0, n = charset.length; i < length; ++i) {
+        retVal += charset.charAt(Math.floor(Math.random() * n));
+    }
+    return retVal;
   }
 
   async updateStatus(id: string, status: 'APPROVED' | 'REJECTED', approver: AuthUserRecord): Promise<AuthUserRecord> {
@@ -72,7 +89,7 @@ export class UsersService {
       canApprove = true;
     } else if (approver.role === 'DEAN') {
       // Dean can approve HOD and Student in same faculty
-      if ((target.role === 'HOD' || target.role === 'STUDENT' || target.role === 'INSTRUCTOR') && target.faculty === approver.faculty) {
+      if ((target.role === Role.HOD || target.role === Role.STUDENT || target.role === Role.LECTURER) && target.faculty === approver.faculty) {
         canApprove = true;
       }
     } else if (approver.role === 'HOD') {
@@ -86,11 +103,32 @@ export class UsersService {
       throw new Error('You do not have permission to approve this user based on your role and faculty/department.');
     }
 
-    return this.prisma.user.update({
+    let password = '';
+    let updateData: Prisma.UserUpdateInput = { status };
+
+    if (status === 'APPROVED') {
+      password = this.generateRandomPassword();
+      const bcrypt = require('bcrypt');
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: { status },
+      data: updateData,
       select: authUserSelect,
     });
+
+    if (status === 'APPROVED') {
+      const identifier = updatedUser.role === 'STUDENT' ? updatedUser.registrationNumber : updatedUser.staffId;
+      await this.mailService.sendCredentials(
+        updatedUser.email,
+        updatedUser.name,
+        password,
+        identifier || updatedUser.email
+      );
+    }
+
+    return updatedUser;
   }
 
   async getPendingApprovals(approver: AuthUserRecord): Promise<AuthUserRecord[]> {
@@ -103,7 +141,7 @@ export class UsersService {
     } else if (approver.role === 'DEAN') {
       // Dean sees HODs, Students, Instructors in their faculty
       where.faculty = approver.faculty;
-      where.role = { in: ['HOD', 'STUDENT', 'INSTRUCTOR'] };
+      where.role = { in: [Role.HOD, Role.STUDENT, Role.LECTURER] };
     } else if (approver.role === 'HOD') {
       // HOD sees Students in their department
       where.department = approver.department;

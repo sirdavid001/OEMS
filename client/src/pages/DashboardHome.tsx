@@ -43,7 +43,7 @@ export const DashboardHome = () => {
       ];
     }
 
-    // INSTRUCTOR, DEAN, HOD
+    // LECTURER, DEAN, HOD
     return [
       { name: 'Exams Created', value: statsLoading ? '...' : dashboardStats?.totalExams || '0', icon: FileText, color: 'text-blue-400', bg: 'bg-blue-400/10' },
       { name: 'Total Attempts', value: statsLoading ? '...' : dashboardStats?.totalAttempts || '0', icon: Users, color: 'text-green-400', bg: 'bg-green-400/10' },
@@ -57,8 +57,8 @@ export const DashboardHome = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-display font-bold text-white">Welcome, {user?.name}</h1>
-        <p className="text-gray-400 mt-1">
+        <h1 className="text-3xl font-display font-bold text-foreground">Welcome, {user?.name}</h1>
+        <p className="text-foreground/60 mt-1">
           {user?.role === 'ADMIN' ? "Here's an overview of the entire system." : "Here's what's happening with your exams today."}
         </p>
       </div>
@@ -66,75 +66,75 @@ export const DashboardHome = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
-          <div key={stat.name} className="glass-card p-6 border-white/5 hover:border-white/10 group">
+          <div key={stat.name} className="glass-card p-6 border-card-border hover:border-primary/20 group">
             <div className="flex items-center justify-between mb-4">
               <div className={`p-3 rounded-xl ${stat.bg}`}>
                 <stat.icon className={`w-6 h-6 ${stat.color}`} />
               </div>
-              <span className="text-xs font-medium text-gray-500 group-hover:text-primary-light transition-colors">View Details</span>
+              <span className="text-xs font-medium text-foreground/40 group-hover:text-primary transition-colors">View Details</span>
             </div>
-            <p className="text-sm font-medium text-gray-400">{stat.name}</p>
-            <h3 className="text-2xl font-display font-bold text-white mt-1">{stat.value}</h3>
+            <p className="text-sm font-medium text-foreground/60">{stat.name}</p>
+            <h3 className="text-2xl font-display font-bold text-foreground mt-1">{stat.value}</h3>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Exams */}
-        <div className="glass-card p-6 border-white/5">
+        <div className="glass-card p-6 border-card-border">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-display font-bold text-white">Recent Activity</h3>
-            <Link to="/dashboard/results" className="text-sm text-primary-light hover:underline">See All</Link>
+            <h3 className="text-xl font-display font-bold text-foreground">Recent Activity</h3>
+            <Link to="/dashboard/results" className="text-sm text-primary hover:underline">See All</Link>
           </div>
           <div className="space-y-4">
             {statsLoading ? (
-              <div className="text-gray-500 italic p-4">Loading stats...</div>
+              <div className="text-foreground/40 italic p-4">Loading stats...</div>
             ) : user?.role === 'STUDENT' ? (
               dashboardStats?.recentAttempts?.length > 0 ? (
                 dashboardStats.recentAttempts.map((attempt: any) => (
-                  <Link to={`/dashboard/results/${attempt.id}`} key={attempt.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-primary/20 transition-all cursor-pointer group">
+                  <Link to={`/dashboard/results/${attempt.id}`} key={attempt.id} className="flex items-center justify-between p-4 rounded-xl bg-secondary/30 border border-card-border hover:bg-secondary/50 hover:border-primary/20 transition-all cursor-pointer group">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                        <FileText className="w-6 h-6 text-gray-400 group-hover:text-primary-light" />
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <FileText className="w-6 h-6 text-foreground/40 group-hover:text-primary" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-white">{attempt.examTitle}</h4>
-                        <p className="text-xs text-gray-500">{new Date(attempt.date).toLocaleDateString()}</p>
+                        <h4 className="font-medium text-foreground">{attempt.examTitle}</h4>
+                        <p className="text-xs text-foreground/40">{new Date(attempt.date).toLocaleDateString()}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm font-bold ${attempt.score >= 80 ? 'text-green-400' : 'text-amber-400'}`}>{attempt.score}%</p>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest">Score</p>
+                      <p className={`text-sm font-bold ${attempt.score >= 80 ? 'text-green-500' : 'text-amber-500'}`}>{attempt.score}%</p>
+                      <p className="text-[10px] text-foreground/40 uppercase tracking-widest">Score</p>
                     </div>
                   </Link>
                 ))
               ) : (
-                <div className="text-center py-10 text-gray-500 glass-card border-dashed">
+                <div className="text-center py-10 text-foreground/40 glass-card border-dashed">
                   No recent activity. Start an exam to see your results here!
                 </div>
               )
             ) : (
-              // INSTRUCTOR/ADMIN Activity
+              // LECTURER/ADMIN Activity
               dashboardStats?.recentCreated?.length > 0 ? (
                 dashboardStats.recentCreated.map((exam: any) => (
-                  <div key={exam.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-primary/20 transition-all group">
+                  <div key={exam.id} className="flex items-center justify-between p-4 rounded-xl bg-secondary/30 border border-card-border hover:bg-secondary/50 hover:border-primary/20 transition-all group">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                        <FileText className="w-6 h-6 text-gray-400 group-hover:text-primary-light" />
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <FileText className="w-6 h-6 text-foreground/40 group-hover:text-primary" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-white">{exam.title}</h4>
-                        <p className="text-xs text-gray-500">{new Date(exam.date).toLocaleDateString()}</p>
+                        <h4 className="font-medium text-foreground">{exam.title}</h4>
+                        <p className="text-xs text-foreground/40">{new Date(exam.date).toLocaleDateString()}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-primary-light">{exam.attempts}</p>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest">Attempts</p>
+                      <p className="text-sm font-bold text-primary">{exam.attempts}</p>
+                      <p className="text-[10px] text-foreground/40 uppercase tracking-widest">Attempts</p>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-10 text-gray-500 glass-card border-dashed">
+                <div className="text-center py-10 text-foreground/40 glass-card border-dashed">
                   No exams created yet. Click 'Create Exam' to get started!
                 </div>
               )
@@ -143,21 +143,21 @@ export const DashboardHome = () => {
         </div>
 
         {/* Upcoming Schedules */}
-        <div className="glass-card p-6 border-white/5">
+        <div className="glass-card p-6 border-card-border">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-display font-bold text-white">Upcoming Schedules</h3>
-            <button className="text-sm text-primary-light hover:underline">View Calendar</button>
+            <h3 className="text-xl font-display font-bold text-foreground">Upcoming Schedules</h3>
+            <button className="text-sm text-primary hover:underline">View Calendar</button>
           </div>
           <div className="space-y-4">
             {[1, 2].map((i) => (
-              <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/10">
-                <div className="flex flex-col items-center justify-center w-14 h-14 bg-primary/20 rounded-xl text-primary-light border border-primary/30">
+              <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-secondary/30 border border-card-border">
+                <div className="flex flex-col items-center justify-center w-14 h-14 bg-primary/10 rounded-xl text-primary border border-primary/20">
                   <span className="text-lg font-bold">24</span>
                   <span className="text-[10px] uppercase font-bold tracking-tight">March</span>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium text-white">Introduction to Web Security</h4>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                  <h4 className="font-medium text-foreground">Introduction to Web Security</h4>
+                  <div className="flex items-center gap-3 mt-1 text-xs text-foreground/40">
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 10:00 AM</span>
                     <span className="flex items-center gap-1"><Users className="w-3 h-3" /> 120 Registered</span>
                   </div>

@@ -147,7 +147,36 @@ export declare class ExamsController {
         score: number;
         userId: string;
     }>;
-    submitAttempt(id: string, answers: any[]): Promise<{
+    submitAttempt(id: string, answers: any[]): Promise<({
+        exam: {
+            questions: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                type: import("@prisma/client").$Enums.QuestionType;
+                content: string;
+                options: Prisma.JsonValue | null;
+                answer: string;
+                points: number;
+                examId: string;
+            }[];
+        } & {
+            id: string;
+            title: string;
+            description: string | null;
+            duration: number;
+            startTime: Date | null;
+            endTime: Date | null;
+            isPublished: boolean;
+            randomized: boolean;
+            passPercentage: number;
+            faculty: string | null;
+            department: string | null;
+            instructorId: string;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    } & {
         id: string;
         startTime: Date;
         createdAt: Date;
@@ -157,7 +186,51 @@ export declare class ExamsController {
         submitTime: Date | null;
         score: number;
         userId: string;
-    }>;
+    }) | ({
+        exam: {
+            id: string;
+            title: string;
+            description: string | null;
+            duration: number;
+            startTime: Date | null;
+            endTime: Date | null;
+            isPublished: boolean;
+            randomized: boolean;
+            passPercentage: number;
+            faculty: string | null;
+            department: string | null;
+            instructorId: string;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        user: {
+            id: string;
+            faculty: string | null;
+            department: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            email: string;
+            phoneNumber: string | null;
+            name: string;
+            password: string | null;
+            role: import("@prisma/client").$Enums.Role;
+            status: import("@prisma/client").$Enums.UserStatus;
+            registrationNumber: string | null;
+            staffId: string | null;
+            resetToken: string | null;
+            resetTokenExpires: Date | null;
+        };
+    } & {
+        id: string;
+        startTime: Date;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        examId: string;
+        submitTime: Date | null;
+        score: number;
+        userId: string;
+    })>;
     getResults(req: any): Promise<({
         exam: {
             id: string;
@@ -257,4 +330,33 @@ export declare class ExamsController {
         userId: string;
     }>;
     downloadPdf(id: string, res: Response): Promise<void>;
+    getAttempts(id: string): Promise<({
+        user: {
+            email: string;
+            name: string;
+            registrationNumber: string | null;
+            staffId: string | null;
+        };
+    } & {
+        id: string;
+        startTime: Date;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        examId: string;
+        submitTime: Date | null;
+        score: number;
+        userId: string;
+    })[]>;
+    gradeAttempt(id: string, grades: any[]): Promise<{
+        id: string;
+        startTime: Date;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        examId: string;
+        submitTime: Date | null;
+        score: number;
+        userId: string;
+    }>;
 }

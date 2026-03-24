@@ -11,15 +11,15 @@ import { ACADEMIC_DATA } from '../constants/academicData';
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.enum(['STUDENT', 'INSTRUCTOR']),
+  phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits'),
+  role: z.enum(['STUDENT', 'LECTURER']),
   registrationNumber: z.string().optional(),
   staffId: z.string().optional(),
   faculty: z.string().min(1, 'Faculty is required'),
   department: z.string().min(1, 'Department is required'),
 }).refine(data => {
   if (data.role === 'STUDENT' && !data.registrationNumber) return false;
-  if (data.role === 'INSTRUCTOR' && !data.staffId) return false;
+  if (data.role === 'LECTURER' && !data.staffId) return false;
   return true;
 }, {
   message: "ID Number is required",
@@ -72,12 +72,12 @@ export const RegisterPage = () => {
   if (isSubmitSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4 text-center">
-        <div className="glass-card max-w-md p-8">
-          <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6 text-primary-light">
+        <div className="glass-card max-w-md p-8 border-card-border">
+          <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6 text-primary">
             <UserPlus className="w-10 h-10" />
           </div>
-          <h2 className="text-2xl font-display font-bold text-white mb-2">Registration Submitted</h2>
-          <p className="text-gray-400 mb-8">Your account has been created and is now pending approval by the Dean or HOD of the {watch('faculty')} Faculty.</p>
+          <h2 className="text-2xl font-display font-bold text-foreground mb-2">Registration Submitted</h2>
+          <p className="text-foreground/60 mb-8">Your account has been created and is now pending approval by the Dean or HOD of the {watch('faculty')} Faculty.</p>
           <Link to="/login">
             <Button className="w-full">Back to Login</Button>
           </Link>
@@ -93,13 +93,13 @@ export const RegisterPage = () => {
         <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-primary/20 rounded-full blur-[100px] animate-pulse-slow animate-delay-1000"></div>
       </div>
 
-      <div className="glass-card w-full max-w-md p-8 relative z-10">
+      <div className="glass-card w-full max-w-md p-8 relative z-10 border-card-border bg-card/60 backdrop-blur-3xl shadow-2xl">
         <div className="flex flex-col items-center mb-6">
           <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 ring-1 ring-primary/30">
-            <UserPlus className="w-8 h-8 text-primary-light" />
+            <UserPlus className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Create Account</h1>
-          <p className="text-gray-400 mt-2">Join the OEMS platform today</p>
+          <h1 className="text-3xl font-display font-bold text-foreground tracking-tight">Create Account</h1>
+          <p className="text-foreground/60 mt-2">Join the OEMS platform today</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -110,85 +110,64 @@ export const RegisterPage = () => {
           )}
 
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300 ml-1">Full Name</label>
+            <label className="text-sm font-medium text-foreground/80 ml-1">Full Name</label>
             <input {...register('name')} className="input-field w-full" placeholder="John Doe" />
             {errors.name && <p className="text-xs text-red-500 ml-1">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
-            <input {...register('email')} className="input-field w-full" placeholder="john@example.com" />
-            {errors.email && <p className="text-xs text-red-500 ml-1">{errors.email.message}</p>}
+            <label className="text-sm font-medium text-foreground/80 ml-1">Phone Number</label>
+            <input {...register('phoneNumber')} className="input-field w-full" placeholder="08012345678" />
+            {errors.phoneNumber && <p className="text-xs text-red-500 ml-1">{errors.phoneNumber.message}</p>}
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300 ml-1">Password</label>
-            <input
-              {...register('password')}
-              type="password"
-              className="input-field w-full"
-              placeholder="••••••••"
-            />
-            {errors.password && <p className="text-xs text-red-500 ml-1">{errors.password.message}</p>}
-          </div>
 
           <div className="space-y-1 pb-2">
-            <label className="text-sm font-medium text-gray-300 ml-1">I am a...</label>
+            <label className="text-sm font-medium text-foreground/60 ml-1">I am a...</label>
             <div className="grid grid-cols-2 gap-4">
-              <label className={`flex items-center justify-center p-3 rounded-xl border cursor-pointer transition-all ${selectedRole === 'STUDENT' ? 'bg-primary/20 border-primary shadow-lg shadow-primary/20 text-white' : 'bg-secondary border-white/5 text-gray-400 hover:border-white/10'}`}>
+              <label className={`flex items-center justify-center p-3 rounded-xl border cursor-pointer transition-all ${selectedRole === 'STUDENT' ? 'bg-primary/20 border-primary shadow-lg shadow-primary/20 text-foreground' : 'bg-secondary border-card-border text-foreground/40 hover:border-primary/20'}`}>
                 <input {...register('role')} type="radio" value="STUDENT" className="sr-only" />
                 <span className="text-sm font-medium">Student</span>
               </label>
-              <label className={`flex items-center justify-center p-3 rounded-xl border cursor-pointer transition-all ${selectedRole === 'INSTRUCTOR' ? 'bg-primary/20 border-primary shadow-lg shadow-primary/20 text-white' : 'bg-secondary border-white/5 text-gray-400 hover:border-white/10'}`}>
-                <input {...register('role')} type="radio" value="INSTRUCTOR" className="sr-only" />
-                <span className="text-sm font-medium">Instructor</span>
+              <label className={`flex items-center justify-center p-3 rounded-xl border cursor-pointer transition-all ${selectedRole === 'LECTURER' ? 'bg-primary/20 border-primary shadow-lg shadow-primary/20 text-foreground' : 'bg-secondary border-card-border text-foreground/40 hover:border-primary/20'}`}>
+                <input {...register('role')} type="radio" value="LECTURER" className="sr-only" />
+                <span className="text-sm font-medium">Lecturer</span>
               </label>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1 relative">
-              <label className="text-sm font-medium text-gray-300 ml-1">Faculty</label>
+              <label className="text-sm font-medium text-foreground/80 ml-1">Faculty</label>
               <div className="relative">
-                <select 
-                  {...register('faculty')} 
-                  className="input-field w-full appearance-none pr-10"
-                  onChange={(e) => {
-                    register('faculty').onChange(e);
-                    // Reset department when faculty changes
-                  }}
-                >
+                <select {...register('faculty')} className="input-field w-full appearance-none pr-10">
                   <option value="">Select Faculty</option>
                   {ACADEMIC_DATA.map(f => (
                     <option key={f.name} value={f.name}>{f.name}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40 pointer-events-none" />
               </div>
               {errors.faculty && <p className="text-xs text-red-500 ml-1">{errors.faculty.message}</p>}
             </div>
 
             <div className="space-y-1 relative">
-              <label className="text-sm font-medium text-gray-300 ml-1">Department</label>
+              <label className="text-sm font-medium text-foreground/80 ml-1">Department</label>
               <div className="relative">
-                <select 
-                  {...register('department')} 
-                  className="input-field w-full appearance-none pr-10"
-                  disabled={!selectedFaculty}
-                >
+                <select {...register('department')} className="input-field w-full appearance-none pr-10" disabled={!selectedFaculty}>
                   <option value="">Select Department</option>
                   {availableDepartments.map(dept => (
                     <option key={dept} value={dept}>{dept}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40 pointer-events-none" />
               </div>
               {errors.department && <p className="text-xs text-red-500 ml-1">{errors.department.message}</p>}
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-300 ml-1">
+            <label className="text-sm font-medium text-foreground/80 ml-1">
               {selectedRole === 'STUDENT' ? 'Matric Number' : 'Staff ID'}
             </label>
             <input 
@@ -205,9 +184,9 @@ export const RegisterPage = () => {
             Submit Registration
           </Button>
 
-          <p className="text-center text-gray-400 text-sm mt-6">
+          <p className="text-center text-foreground/60 text-sm mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary-light font-medium hover:underline">
+            <Link to="/login" className="text-primary font-medium hover:underline">
               Sign In
             </Link>
           </p>

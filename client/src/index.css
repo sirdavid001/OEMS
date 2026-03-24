@@ -2,9 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #6d28d9;
+  --primary-hover: #7c3aed;
+  --primary-light: #a78bfa;
+  --secondary: #f1f5f9;
+  --secondary-hover: #e2e8f0;
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(15, 23, 42, 0.08);
+}
+
+.dark {
+  --background: #0a0a0c;
+  --foreground: #ffffff;
+  --primary: #6d28d9;
+  --primary-hover: #7c3aed;
+  --primary-light: #a78bfa;
+  --secondary: #1e1e24;
+  --secondary-hover: #2a2a32;
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --card-bg: rgba(30, 30, 36, 0.7);
+  --card-border: rgba(255, 255, 255, 0.1);
+}
+
 @layer base {
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased transition-colors duration-300;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -22,6 +50,6 @@
   }
 
   .input-field {
-    @apply bg-secondary border border-card-border text-white px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-200;
+    @apply bg-secondary border border-card-border text-foreground px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-200;
   }
 }

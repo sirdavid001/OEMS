@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Exam, Prisma, ExamAttempt, AttemptStatus } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class ExamsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async findAll(user: any) {
     const where: Prisma.ExamWhereInput = {
@@ -20,7 +24,7 @@ export class ExamsService {
         { faculty: user.faculty, department: null },
         { faculty: user.faculty, department: user.department }
       ];
-    } else if (user.role === 'INSTRUCTOR' || user.role === 'DEAN' || user.role === 'HOD') {
+    } else if (user.role === 'LECTURER' || user.role === 'DEAN' || user.role === 'HOD') {
       // Instructors see exams they created OR ones in their faculty
       where.OR = [
         { instructorId: user.id },
@@ -79,7 +83,35 @@ export class ExamsService {
   }
 
   async update(id: string, data: Prisma.ExamUpdateInput) {
-    return this.prisma.exam.update({ where: { id }, data });
+    const oldExam = await this.prisma.exam.findUnique({ where: { id } });
+    const exam = await this.prisma.exam.update({ where: { id }, data });
+
+    if (data.isPublished === true && (!oldExam || !oldExam.isPublished)) {
+      // Notify students in the target faculty/department
+      const students = await this.prisma.user.findMany({
+        where: {
+          role: 'STUDENT',
+          status: 'APPROVED',
+          OR: [
+            { faculty: exam.faculty, department: exam.department },
+            { faculty: exam.faculty, department: null },
+            { faculty: null, department: null },
+          ],
+        },
+      });
+
+      for (const student of students) {
+        await this.mailService.sendExamScheduled(
+          student.email,
+          student.name,
+          exam.title,
+          exam.startTime as any, // Cast to any to bypass strict date check if it can be null
+          exam.duration
+        );
+      }
+    }
+
+    return exam;
   }
 
   async delete(id: string) {
@@ -127,7 +159,7 @@ export class ExamsService {
       });
     }
 
-    return this.prisma.examAttempt.update({
+    const updatedAttempt = await this.prisma.examAttempt.update({
       where: { id: attemptId },
       data: {
         score,
@@ -139,7 +171,17 @@ export class ExamsService {
           },
         },
       },
+      include: { user: true, exam: true },
     });
+
+    await this.mailService.sendResultAvailable(
+      updatedAttempt.user.email,
+      updatedAttempt.user.name,
+      updatedAttempt.exam.title,
+      updatedAttempt.score
+    );
+
+    return updatedAttempt;
   }
 
   async generateResultPdf(attemptId: string, res: any) {
@@ -225,7 +267,47 @@ export class ExamsService {
     if (!attempt) throw new NotFoundException('Attempt not found');
     return attempt;
   }
-  async getInstructorStats(userId: string) {
+  async getExamAttempts(examId: string) {
+    return this.prisma.examAttempt.findMany({
+      where: { examId },
+      include: { 
+        user: { select: { name: true, email: true, registrationNumber: true, staffId: true } },
+      },
+      orderBy: { submitTime: 'desc' },
+    });
+  }
+
+  async gradeAttempt(attemptId: string, grades: { questionId: string; points: number; feedback?: string }[]) {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Update individual answers
+      for (const grade of grades) {
+        await tx.studentAnswer.updateMany({
+          where: { attemptId, questionId: grade.questionId },
+          data: {
+            pointsEarned: grade.points,
+            feedback: grade.feedback,
+          },
+        });
+      }
+
+      // 2. Recalculate total score
+      const allAnswers = await tx.studentAnswer.findMany({
+        where: { attemptId },
+      });
+      const totalScore = allAnswers.reduce((acc, curr) => acc + curr.pointsEarned, 0);
+
+      // 3. Update attempt status and final score
+      return tx.examAttempt.update({
+        where: { id: attemptId },
+        data: {
+          score: totalScore,
+          status: AttemptStatus.GRADED,
+        },
+      });
+    });
+  }
+
+  async getLecturerStats(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { _count: { select: { examsCreated: true } } }

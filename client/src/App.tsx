@@ -12,9 +12,13 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ResultDetailsPage } from './pages/ResultDetailsPage';
 import { ExamInterfacePage } from './pages/ExamInterfacePage';
-import { InstructorExamsPage } from './pages/InstructorExamsPage';
+import { LecturerExamsPage } from './pages/LecturerExamsPage';
+import { ExamAttemptsPage } from './pages/ExamAttemptsPage';
+import { GradingPage } from './pages/GradingPage';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { useAuthStore } from './store/authStore';
+
+import { useTheme } from './hooks/useTheme';
 
 const queryClient = new QueryClient();
 
@@ -24,6 +28,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
+  useTheme(); // Initialize theme detection
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -40,7 +45,9 @@ function App() {
                   <Routes>
                     <Route index element={<DashboardHome />} />
                     <Route path="exams" element={<ExamsListPage />} />
-                    <Route path="instructor-exams" element={<InstructorExamsPage />} />
+                    <Route path="lecturer-exams" element={<LecturerExamsPage />} />
+                    <Route path="exams/:examId/attempts" element={<ExamAttemptsPage />} />
+                    <Route path="grade/:attemptId" element={<GradingPage />} />
                     <Route path="create-exam" element={<CreateExamPage />} />
                     <Route path="users" element={<UserManagementPage />} />
                     <Route path="results" element={<ResultsPage />} />

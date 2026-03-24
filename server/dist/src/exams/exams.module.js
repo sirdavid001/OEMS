@@ -12,12 +12,13 @@ const exams_service_1 = require("./exams.service");
 const exams_controller_1 = require("./exams.controller");
 const exam_gateway_1 = require("./exam/exam.gateway");
 const prisma_module_1 = require("../prisma/prisma.module");
+const mail_module_1 = require("../mail/mail.module");
 let ExamsModule = class ExamsModule {
 };
 exports.ExamsModule = ExamsModule;
 exports.ExamsModule = ExamsModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule],
+        imports: [prisma_module_1.PrismaModule, mail_module_1.MailModule],
         providers: [exams_service_1.ExamsService, exam_gateway_1.ExamGateway],
         controllers: [exams_controller_1.ExamsController],
         exports: [exams_service_1.ExamsService],

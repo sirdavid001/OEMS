@@ -1,8 +1,10 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
 export declare class ExamsService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private mailService;
+    constructor(prisma: PrismaService, mailService: MailService);
     findAll(user: any): Promise<({
         instructor: {
             name: string;
@@ -149,7 +151,36 @@ export declare class ExamsService {
     submitAttempt(attemptId: string, answers: {
         questionId: string;
         response: string;
-    }[]): Promise<{
+    }[]): Promise<({
+        exam: {
+            questions: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                type: import("@prisma/client").$Enums.QuestionType;
+                content: string;
+                options: Prisma.JsonValue | null;
+                answer: string;
+                points: number;
+                examId: string;
+            }[];
+        } & {
+            id: string;
+            title: string;
+            description: string | null;
+            duration: number;
+            startTime: Date | null;
+            endTime: Date | null;
+            isPublished: boolean;
+            randomized: boolean;
+            passPercentage: number;
+            faculty: string | null;
+            department: string | null;
+            instructorId: string;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    } & {
         id: string;
         startTime: Date;
         createdAt: Date;
@@ -159,7 +190,51 @@ export declare class ExamsService {
         submitTime: Date | null;
         score: number;
         userId: string;
-    }>;
+    }) | ({
+        exam: {
+            id: string;
+            title: string;
+            description: string | null;
+            duration: number;
+            startTime: Date | null;
+            endTime: Date | null;
+            isPublished: boolean;
+            randomized: boolean;
+            passPercentage: number;
+            faculty: string | null;
+            department: string | null;
+            instructorId: string;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        user: {
+            id: string;
+            faculty: string | null;
+            department: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+            email: string;
+            phoneNumber: string | null;
+            name: string;
+            password: string | null;
+            role: import("@prisma/client").$Enums.Role;
+            status: import("@prisma/client").$Enums.UserStatus;
+            registrationNumber: string | null;
+            staffId: string | null;
+            resetToken: string | null;
+            resetTokenExpires: Date | null;
+        };
+    } & {
+        id: string;
+        startTime: Date;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        examId: string;
+        submitTime: Date | null;
+        score: number;
+        userId: string;
+    })>;
     generateResultPdf(attemptId: string, res: any): Promise<void>;
     getResults(userId: string): Promise<({
         exam: {
@@ -249,7 +324,40 @@ export declare class ExamsService {
         score: number;
         userId: string;
     }>;
-    getInstructorStats(userId: string): Promise<{
+    getExamAttempts(examId: string): Promise<({
+        user: {
+            email: string;
+            name: string;
+            registrationNumber: string | null;
+            staffId: string | null;
+        };
+    } & {
+        id: string;
+        startTime: Date;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        examId: string;
+        submitTime: Date | null;
+        score: number;
+        userId: string;
+    })[]>;
+    gradeAttempt(attemptId: string, grades: {
+        questionId: string;
+        points: number;
+        feedback?: string;
+    }[]): Promise<{
+        id: string;
+        startTime: Date;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        examId: string;
+        submitTime: Date | null;
+        score: number;
+        userId: string;
+    }>;
+    getLecturerStats(userId: string): Promise<{
         totalExams: number;
         totalAttempts: number;
         activeExams: number;

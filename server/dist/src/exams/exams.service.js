@@ -13,10 +13,13 @@ exports.ExamsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
+const mail_service_1 = require("../mail/mail.service");
 let ExamsService = class ExamsService {
     prisma;
-    constructor(prisma) {
+    mailService;
+    constructor(prisma, mailService) {
         this.prisma = prisma;
+        this.mailService = mailService;
     }
     async findAll(user) {
         const where = {
@@ -32,7 +35,7 @@ let ExamsService = class ExamsService {
                 { faculty: user.faculty, department: user.department }
             ];
         }
-        else if (user.role === 'INSTRUCTOR' || user.role === 'DEAN' || user.role === 'HOD') {
+        else if (user.role === 'LECTURER' || user.role === 'DEAN' || user.role === 'HOD') {
             where.OR = [
                 { instructorId: user.id },
                 { faculty: user.faculty }
@@ -85,7 +88,25 @@ let ExamsService = class ExamsService {
         });
     }
     async update(id, data) {
-        return this.prisma.exam.update({ where: { id }, data });
+        const oldExam = await this.prisma.exam.findUnique({ where: { id } });
+        const exam = await this.prisma.exam.update({ where: { id }, data });
+        if (data.isPublished === true && (!oldExam || !oldExam.isPublished)) {
+            const students = await this.prisma.user.findMany({
+                where: {
+                    role: 'STUDENT',
+                    status: 'APPROVED',
+                    OR: [
+                        { faculty: exam.faculty, department: exam.department },
+                        { faculty: exam.faculty, department: null },
+                        { faculty: null, department: null },
+                    ],
+                },
+            });
+            for (const student of students) {
+                await this.mailService.sendExamScheduled(student.email, student.name, exam.title, exam.startTime, exam.duration);
+            }
+        }
+        return exam;
     }
     async delete(id) {
         return this.prisma.exam.delete({ where: { id } });
@@ -127,7 +148,7 @@ let ExamsService = class ExamsService {
                 pointsEarned,
             });
         }
-        return this.prisma.examAttempt.update({
+        const updatedAttempt = await this.prisma.examAttempt.update({
             where: { id: attemptId },
             data: {
                 score,
@@ -139,7 +160,10 @@ let ExamsService = class ExamsService {
                     },
                 },
             },
+            include: { user: true, exam: true },
         });
+        await this.mailService.sendResultAvailable(updatedAttempt.user.email, updatedAttempt.user.name, updatedAttempt.exam.title, updatedAttempt.score);
+        return updatedAttempt;
     }
     async generateResultPdf(attemptId, res) {
         const PDFDocument = require('pdfkit');
@@ -214,7 +238,40 @@ let ExamsService = class ExamsService {
             throw new common_1.NotFoundException('Attempt not found');
         return attempt;
     }
-    async getInstructorStats(userId) {
+    async getExamAttempts(examId) {
+        return this.prisma.examAttempt.findMany({
+            where: { examId },
+            include: {
+                user: { select: { name: true, email: true, registrationNumber: true, staffId: true } },
+            },
+            orderBy: { submitTime: 'desc' },
+        });
+    }
+    async gradeAttempt(attemptId, grades) {
+        return this.prisma.$transaction(async (tx) => {
+            for (const grade of grades) {
+                await tx.studentAnswer.updateMany({
+                    where: { attemptId, questionId: grade.questionId },
+                    data: {
+                        pointsEarned: grade.points,
+                        feedback: grade.feedback,
+                    },
+                });
+            }
+            const allAnswers = await tx.studentAnswer.findMany({
+                where: { attemptId },
+            });
+            const totalScore = allAnswers.reduce((acc, curr) => acc + curr.pointsEarned, 0);
+            return tx.examAttempt.update({
+                where: { id: attemptId },
+                data: {
+                    score: totalScore,
+                    status: client_1.AttemptStatus.GRADED,
+                },
+            });
+        });
+    }
+    async getLecturerStats(userId) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
             include: { _count: { select: { examsCreated: true } } }
@@ -240,6 +297,7 @@ let ExamsService = class ExamsService {
 exports.ExamsService = ExamsService;
 exports.ExamsService = ExamsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        mail_service_1.MailService])
 ], ExamsService);
 //# sourceMappingURL=exams.service.js.map

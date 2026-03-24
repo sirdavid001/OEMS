@@ -11,7 +11,7 @@ export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  @Roles(Role.ADMIN, Role.LECTURER)
   async create(@Body() createQuestionDto: any) {
     return this.questionsService.create(createQuestionDto);
   }
@@ -22,13 +22,13 @@ export class QuestionsController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  @Roles(Role.ADMIN, Role.LECTURER)
   async update(@Param('id') id: string, @Body() updateQuestionDto: any) {
     return this.questionsService.update(id, updateQuestionDto);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  @Roles(Role.ADMIN, Role.LECTURER)
   async remove(@Param('id') id: string) {
     return this.questionsService.delete(id);
   }

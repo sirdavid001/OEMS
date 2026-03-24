@@ -9,7 +9,7 @@ import { useAuthStore } from '../store/authStore';
 import { LogIn } from 'lucide-react';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  identifier: z.string().min(1, 'Email, Phone, or ID Number is required'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -50,37 +50,37 @@ export const LoginPage = () => {
         <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse-slow animate-delay-1000"></div>
       </div>
 
-      <div className="glass-card w-full max-w-md p-8 relative z-10 border-white/5 bg-white/5 backdrop-blur-2xl">
+      <div className="glass-card w-full max-w-md p-8 relative z-10 border-card-border bg-card/60 backdrop-blur-3xl shadow-2xl">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 ring-1 ring-primary/30">
-            <LogIn className="w-8 h-8 text-primary-light" />
+            <LogIn className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tight">Welcome Back</h1>
-          <p className="text-gray-400 mt-2">Sign in to your OEMS account</p>
+          <h1 className="text-3xl font-display font-bold text-foreground tracking-tight text-center">Welcome Back</h1>
+          <p className="text-foreground/60 mt-2">Sign in to your OEMS account</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-xl text-sm animate-shake">
+            <div className="bg-red-500/10 border border-red-500/20 text-red-600 p-4 rounded-xl text-sm animate-shake">
               {error}
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
+            <label className="text-sm font-medium text-foreground/60 ml-1">Email, Phone, or ID Number</label>
             <input
-              {...register('email')}
+              {...register('identifier')}
               className="input-field w-full"
-              placeholder="name@example.com"
-              autoComplete="email"
+              placeholder="Email, Phone, or Matric/Staff ID"
+              autoComplete="username"
             />
-            {errors.email && <p className="text-xs text-red-500 ml-1">{errors.email.message}</p>}
+            {errors.identifier && <p className="text-xs text-red-500 ml-1">{errors.identifier.message}</p>}
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between items-center px-1">
-               <label className="text-sm font-medium text-gray-300">Password</label>
-               <Link to="/forgot-password" className="text-xs text-primary-light hover:underline">Forgot password?</Link>
+               <label className="text-sm font-medium text-foreground/60">Password</label>
+               <Link to="/forgot-password" university-theme-aware="true" className="text-xs text-primary hover:underline font-medium">Forgot password?</Link>
             </div>
             <input
               {...register('password')}
@@ -96,9 +96,9 @@ export const LoginPage = () => {
             Sign In
           </Button>
 
-          <p className="text-center text-gray-400 text-sm mt-8">
+          <p className="text-center text-foreground/40 text-sm mt-8">
             Don't have an account?{' '}
-            <Link to="/register" className="text-primary-light font-medium hover:underline">
+            <Link to="/register" className="text-primary font-bold hover:underline">
               Create an account
             </Link>
           </p>

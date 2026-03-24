@@ -11,6 +11,7 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import api from '../services/api';
+import { MathContent } from '../components/ui/MathContent';
 
 export const ExamInterfacePage = () => {
   const { examId, attemptId } = useParams();
@@ -105,7 +106,7 @@ export const ExamInterfacePage = () => {
     }
   };
 
-  if (!exam || timeLeft === null) return <div className="min-h-screen bg-background flex items-center justify-center text-white">Initializing Secure Session...</div>;
+  if (!exam || timeLeft === null) return <div className="min-h-screen bg-background flex items-center justify-center text-foreground italic">Initializing Secure Session...</div>;
 
   const currentQuestion = exam.questions[currentQuestionIdx];
   const formatTime = (seconds: number) => {
@@ -115,20 +116,20 @@ export const ExamInterfacePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-white flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Top Bar */}
-      <header className="h-20 border-b border-white/5 bg-white/[0.02] backdrop-blur-xl flex items-center justify-between px-8 sticky top-0 z-50">
+      <header className="h-20 border-b border-card-border bg-secondary/30 backdrop-blur-xl flex items-center justify-between px-8 sticky top-0 z-50">
         <div className="flex items-center gap-6">
-          <h2 className="text-xl font-display font-bold truncate max-w-md">{exam.title}</h2>
-          <div className="hidden sm:flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary-light text-sm font-medium">
+          <h2 className="text-xl font-display font-bold truncate max-w-md text-foreground">{exam.title}</h2>
+          <div className="hidden sm:flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
             <Clock className="w-4 h-4" />
             {formatTime(timeLeft)}
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right mr-4 hidden md:block">
-            <p className="text-xs text-gray-500 font-medium">Candidate</p>
-            <p className="text-sm font-bold">{user?.name}</p>
+            <p className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Candidate</p>
+            <p className="text-sm font-bold text-foreground">{user?.name}</p>
           </div>
           <Button variant="primary" className="gap-2" onClick={handleSubmit}>
             <Send className="w-4 h-4" />
@@ -139,14 +140,14 @@ export const ExamInterfacePage = () => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar: Navigation */}
-        <aside className="w-80 border-r border-white/5 bg-white/[0.01] p-6 hidden lg:block overflow-y-auto">
-          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">Question Palette</h3>
+        <aside className="w-80 border-r border-card-border bg-secondary/10 p-6 hidden lg:block overflow-y-auto">
+          <h3 className="text-sm font-bold text-foreground/40 uppercase tracking-widest mb-6">Question Palette</h3>
           <div className="grid grid-cols-4 gap-3">
             {exam.questions.map((_: any, idx: number) => (
               <button
                 key={idx}
                 onClick={() => setCurrentQuestionIdx(idx)}
-                className={`h-12 rounded-xl border flex items-center justify-center font-bold transition-all ${currentQuestionIdx === idx ? 'bg-primary border-primary shadow-lg shadow-primary/20 scale-110' : answers[exam.questions[idx].id] ? 'bg-green-500/20 border-green-500/30 text-green-500' : 'bg-secondary border-white/5 text-gray-500 hover:border-white/10'}`}
+                className={`h-12 rounded-xl border flex items-center justify-center font-bold transition-all ${currentQuestionIdx === idx ? 'bg-primary border-primary shadow-lg shadow-primary/20 text-white scale-110' : answers[exam.questions[idx].id] ? 'bg-green-500/20 border-green-500/30 text-green-600' : 'bg-secondary border-card-border text-foreground/40 hover:border-primary/20'}`}
               >
                 {idx + 1}
               </button>
@@ -154,11 +155,11 @@ export const ExamInterfacePage = () => {
           </div>
 
           <div className="mt-10 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
-            <div className="flex gap-3 text-amber-500">
+            <div className="flex gap-3 text-amber-600">
               <AlertTriangle className="w-5 h-5 shrink-0" />
               <div>
                 <p className="text-xs font-bold uppercase">Proctoring Active</p>
-                <p className="text-[10px] text-amber-500/70 mt-1 leading-relaxed">System is monitoring tab switches and display activity. Any suspicious behavior will be flagged.</p>
+                <p className="text-[10px] text-amber-600/70 mt-1 leading-relaxed">System is monitoring tab switches and display activity. Any suspicious behavior will be flagged.</p>
               </div>
             </div>
           </div>
@@ -168,15 +169,15 @@ export const ExamInterfacePage = () => {
         <main className="flex-1 p-6 md:p-12 overflow-y-auto">
           <div className="max-w-3xl mx-auto space-y-10 animate-slide-up">
             <div className="space-y-4">
-              <span className="text-primary-light font-bold text-sm tracking-widest uppercase">Question {currentQuestionIdx + 1} of {exam.questions.length}</span>
-              <h1 className="text-2xl md:text-3xl font-display font-medium leading-tight">{currentQuestion.text}</h1>
+              <span className="text-primary font-bold text-sm tracking-widest uppercase">Question {currentQuestionIdx + 1} of {exam.questions.length}</span>
+              <MathContent className="text-2xl md:text-3xl font-display font-medium leading-tight text-foreground" content={currentQuestion.text} />
             </div>
 
             <div className="space-y-4">
               {currentQuestion.options ? (
                 // MCQ Options
                 Object.entries(JSON.parse(currentQuestion.options)).map(([key, value]: [string, any]) => (
-                  <label key={key} className={`group flex items-center gap-4 p-5 rounded-2xl border cursor-pointer transition-all ${answers[currentQuestion.id] === key ? 'bg-primary/20 border-primary shadow-lg shadow-primary/20' : 'bg-secondary border-white/5 hover:border-white/10'}`}>
+                  <label key={key} className={`group flex items-center gap-4 p-5 rounded-2xl border cursor-pointer transition-all ${answers[currentQuestion.id] === key ? 'bg-primary/10 border-primary/50 shadow-md shadow-primary/5' : 'bg-secondary/40 border-card-border hover:border-primary/20'}`}>
                     <input 
                       type="radio" 
                       name="option" 
@@ -184,10 +185,10 @@ export const ExamInterfacePage = () => {
                       checked={answers[currentQuestion.id] === key}
                       onChange={() => handleAnswer(currentQuestion.id, key)}
                     />
-                    <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold transition-colors ${answers[currentQuestion.id] === key ? 'bg-primary border-primary text-white' : 'bg-white/5 border-white/10 text-gray-400 group-hover:border-primary/50'}`}>
+                    <div className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold transition-colors ${answers[currentQuestion.id] === key ? 'bg-primary border-primary text-white' : 'bg-secondary border-card-border text-foreground/40 group-hover:border-primary/30 group-hover:text-primary'}`}>
                       {key.toUpperCase()}
                     </div>
-                    <span className="text-lg text-gray-200">{value}</span>
+                    <MathContent className="text-lg text-foreground/80" content={value} />
                   </label>
                 ))
               ) : (
@@ -201,7 +202,7 @@ export const ExamInterfacePage = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-10 border-t border-white/5">
+            <div className="flex items-center justify-between pt-10 border-t border-card-border">
               <Button 
                 variant="ghost" 
                 className="gap-2" 

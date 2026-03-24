@@ -25,35 +25,35 @@ export const ExamsListPage = () => {
     }
   };
 
-  if (isLoading) return <div className="text-white">Loading exams...</div>;
+  if (isLoading) return <div className="text-foreground italic">Loading exams...</div>;
   if (error) return <div className="text-red-500">Error loading exams</div>;
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-display font-bold text-white">Available Exams</h1>
-        <p className="text-gray-400 mt-1">Browse and participate in scheduled examinations.</p>
+        <h1 className="text-3xl font-display font-bold text-foreground">Available Exams</h1>
+        <p className="text-foreground/60 mt-1">Browse and participate in scheduled examinations.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {exams?.map((exam: any) => (
-          <div key={exam.id} className="glass-card p-6 border-white/5 flex flex-col justify-between group hover:border-primary/30 transition-all">
+          <div key={exam.id} className="glass-card p-6 border-card-border flex flex-col justify-between group hover:border-primary/30 transition-all">
             <div>
               <div className="flex justify-between items-start mb-4">
                 <div className="p-3 rounded-xl bg-primary/10">
-                  <BookOpen className="w-6 h-6 text-primary-light" />
+                  <BookOpen className="w-6 h-6 text-primary" />
                 </div>
-                <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-bold uppercase tracking-wider">Active</span>
+                <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-600 text-[10px] font-bold uppercase tracking-wider">Active</span>
               </div>
-              <h3 className="text-xl font-display font-bold text-white mb-2">{exam.title}</h3>
-              <p className="text-gray-400 text-sm mb-6 line-clamp-2">{exam.description || 'No description available for this exam.'}</p>
+              <h3 className="text-xl font-display font-bold text-foreground mb-2">{exam.title}</h3>
+              <p className="text-foreground/60 text-sm mb-6 line-clamp-2">{exam.description || 'No description available for this exam.'}</p>
               
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="flex items-center gap-2 text-gray-500 text-xs">
+                <div className="flex items-center gap-2 text-foreground/40 text-xs">
                   <Clock className="w-4 h-4" />
                   <span>{exam.duration} Minutes</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-500 text-xs">
+                <div className="flex items-center gap-2 text-foreground/40 text-xs">
                   <AlertCircle className="w-4 h-4" />
                   <span>100 Possible Points</span>
                 </div>
@@ -71,10 +71,10 @@ export const ExamsListPage = () => {
         ))}
 
         {exams?.length === 0 && (
-          <div className="col-span-full py-20 flex flex-col items-center justify-center glass-card border-dashed border-white/10">
-            <BookOpen className="w-12 h-12 text-gray-600 mb-4" />
-            <h3 className="text-xl font-display font-bold text-gray-400">No exams available</h3>
-            <p className="text-gray-500 mt-2">Check back later for scheduled assessments.</p>
+          <div className="col-span-full py-20 flex flex-col items-center justify-center glass-card border-dashed border-card-border">
+            <BookOpen className="w-12 h-12 text-foreground/20 mb-4" />
+            <h3 className="text-xl font-display font-bold text-foreground/40">No exams available</h3>
+            <p className="text-foreground/30 mt-2">Check back later for scheduled assessments.</p>
           </div>
         )}
       </div>

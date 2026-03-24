@@ -42,12 +42,12 @@ export const ForgotPasswordPage = () => {
   if (isSubmitted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4 text-center">
-        <div className="glass-card w-full max-w-md p-8 border-white/5">
+        <div className="glass-card w-full max-w-md p-8 border-card-border">
           <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-green-500/30">
-            <CheckCircle className="w-8 h-8 text-green-400" />
+            <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <h1 className="text-2xl font-display font-bold text-white mb-2">Check Your Email</h1>
-          <p className="text-gray-400 mb-8">
+          <h1 className="text-2xl font-display font-bold text-foreground mb-2">Check Your Email</h1>
+          <p className="text-foreground/60 mb-8">
             If an account exists for that email, we've sent instructions to reset your password.
           </p>
           <Link to="/login">
@@ -60,17 +60,17 @@ export const ForgotPasswordPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="glass-card w-full max-w-md p-8 relative border-white/5">
-        <Link to="/login" className="absolute top-8 left-8 text-gray-400 hover:text-white transition-colors">
+      <div className="glass-card w-full max-w-md p-8 relative border-card-border">
+        <Link to="/login" className="absolute top-8 left-8 text-foreground/40 hover:text-foreground transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         
         <div className="flex flex-col items-center mb-8 mt-4">
           <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 ring-1 ring-primary/30">
-            <Mail className="w-8 h-8 text-primary-light" />
+            <Mail className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-2xl font-display font-bold text-white tracking-tight">Forgot Password</h1>
-          <p className="text-gray-400 mt-2 text-center">Enter your email and we'll send you a link to reset your password.</p>
+          <h1 className="text-2xl font-display font-bold text-foreground tracking-tight">Forgot Password</h1>
+          <p className="text-foreground/60 mt-2 text-center">Enter your email and we'll send you a link to reset your password.</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -81,7 +81,7 @@ export const ForgotPasswordPage = () => {
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
+            <label className="text-sm font-medium text-foreground/60 ml-1">Email Address</label>
             <input
               {...register('email')}
               className="input-field w-full"

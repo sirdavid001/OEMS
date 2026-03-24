@@ -13,12 +13,27 @@ export class AuthService {
     private prisma: PrismaService,
   ) {}
 
-  async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
+  async validateUser(identifier: string, pass: string): Promise<any> {
+    // Find user by email, phoneNumber, or registrationNumber/staffId
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: identifier },
+          { phoneNumber: identifier },
+          { registrationNumber: identifier },
+          { staffId: identifier },
+        ],
+      },
+    });
+
     if (!user) return null;
     
     if (user.status !== 'APPROVED') {
       throw new UnauthorizedException('Your account is pending approval by the Dean or HOD.');
+    }
+
+    if (!user.password) {
+      throw new UnauthorizedException('Account not yet finalized. Please check your email for credentials.');
     }
 
     if (await bcrypt.compare(pass, user.password)) {
@@ -37,40 +52,46 @@ export class AuthService {
         email: user.email,
         name: user.name,
         role: user.role,
+        phoneNumber: user.phoneNumber,
+        registrationNumber: user.registrationNumber,
+        staffId: user.staffId,
       },
     };
   }
 
   async register(data: any) {
-    const existing = await this.usersService.findByEmail(data.email);
-    if (existing) {
-      throw new ConflictException('Email already exists');
-    }
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const existing = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: data.email },
+          { phoneNumber: data.phoneNumber },
+        ]
+      }
+    });
     
-    // Default status for new users is PENDING, except ADMIN (if created via this endpoint, though usually not)
+    if (existing) {
+      throw new ConflictException('Email or Phone Number already exists');
+    }
+
+    // Default status for new users is PENDING, except ADMIN
     const status = data.role === 'ADMIN' ? 'APPROVED' : 'PENDING';
 
     const user = await this.usersService.create({
       email: data.email,
+      phoneNumber: data.phoneNumber,
       name: data.name,
-      password: hashedPassword,
       role: data.role,
       status: status,
-      registrationNumber: data.registrationNumber,
-      staffId: data.staffId,
+      registrationNumber: data.role === 'STUDENT' ? data.registrationNumber : null,
+      staffId: data.role === 'LECTURER' ? data.staffId : null,
       faculty: data.faculty,
       department: data.department,
     });
 
-    if (user.status === 'PENDING') {
-      return { 
-        message: 'Registration successful. Your account is pending approval by the Dean or HOD.',
-        user: { id: user.id, email: user.email, name: user.name, role: user.role, status: user.status }
-      };
-    }
-    
-    return this.login(user);
+    return { 
+      message: 'Registration successful. Your account is pending approval by the Dean or HOD. You will receive your login credentials via email once approved.',
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, status: user.status }
+    };
   }
 
   async forgotPassword(email: string) {

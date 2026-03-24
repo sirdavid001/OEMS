@@ -5,7 +5,10 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'STUDENT' | 'INSTRUCTOR' | 'ADMIN';
+  role: 'STUDENT' | 'LECTURER' | 'ADMIN' | 'DEAN' | 'HOD';
+  phoneNumber?: string;
+  registrationNumber?: string;
+  staffId?: string;
 }
 
 interface AuthState {

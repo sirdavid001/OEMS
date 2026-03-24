@@ -12,9 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const client_1 = require("@prisma/client");
+const mail_service_1 = require("../mail/mail.service");
 const authUserSelect = {
     id: true,
     email: true,
+    phoneNumber: true,
     name: true,
     password: true,
     role: true,
@@ -28,8 +31,10 @@ const authUserSelect = {
 };
 let UsersService = class UsersService {
     prisma;
-    constructor(prisma) {
+    mailService;
+    constructor(prisma, mailService) {
         this.prisma = prisma;
+        this.mailService = mailService;
     }
     async findByEmail(email) {
         return this.prisma.user.findUnique({
@@ -45,13 +50,16 @@ let UsersService = class UsersService {
     }
     async create(data) {
         return this.prisma.user.create({
-            data,
+            data: {
+                ...data,
+                password: '',
+            },
             select: authUserSelect,
         });
     }
     async update(id, data) {
         const updateData = { ...data };
-        if (data.password && typeof data.password === 'string') {
+        if (data.password && typeof data.password === 'string' && data.password !== '') {
             const bcrypt = require('bcrypt');
             updateData.password = await bcrypt.hash(data.password, 10);
         }
@@ -60,6 +68,14 @@ let UsersService = class UsersService {
             data: updateData,
             select: authUserSelect,
         });
+    }
+    generateRandomPassword(length = 10) {
+        const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        let retVal = "";
+        for (let i = 0, n = charset.length; i < length; ++i) {
+            retVal += charset.charAt(Math.floor(Math.random() * n));
+        }
+        return retVal;
     }
     async updateStatus(id, status, approver) {
         const target = await this.findById(id);
@@ -70,7 +86,7 @@ let UsersService = class UsersService {
             canApprove = true;
         }
         else if (approver.role === 'DEAN') {
-            if ((target.role === 'HOD' || target.role === 'STUDENT' || target.role === 'INSTRUCTOR') && target.faculty === approver.faculty) {
+            if ((target.role === client_1.Role.HOD || target.role === client_1.Role.STUDENT || target.role === client_1.Role.LECTURER) && target.faculty === approver.faculty) {
                 canApprove = true;
             }
         }
@@ -82,11 +98,23 @@ let UsersService = class UsersService {
         if (!canApprove) {
             throw new Error('You do not have permission to approve this user based on your role and faculty/department.');
         }
-        return this.prisma.user.update({
+        let password = '';
+        let updateData = { status };
+        if (status === 'APPROVED') {
+            password = this.generateRandomPassword();
+            const bcrypt = require('bcrypt');
+            updateData.password = await bcrypt.hash(password, 10);
+        }
+        const updatedUser = await this.prisma.user.update({
             where: { id },
-            data: { status },
+            data: updateData,
             select: authUserSelect,
         });
+        if (status === 'APPROVED') {
+            const identifier = updatedUser.role === 'STUDENT' ? updatedUser.registrationNumber : updatedUser.staffId;
+            await this.mailService.sendCredentials(updatedUser.email, updatedUser.name, password, identifier || updatedUser.email);
+        }
+        return updatedUser;
     }
     async getPendingApprovals(approver) {
         const where = {
@@ -96,7 +124,7 @@ let UsersService = class UsersService {
         }
         else if (approver.role === 'DEAN') {
             where.faculty = approver.faculty;
-            where.role = { in: ['HOD', 'STUDENT', 'INSTRUCTOR'] };
+            where.role = { in: [client_1.Role.HOD, client_1.Role.STUDENT, client_1.Role.LECTURER] };
         }
         else if (approver.role === 'HOD') {
             where.department = approver.department;
@@ -115,6 +143,7 @@ let UsersService = class UsersService {
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        mail_service_1.MailService])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

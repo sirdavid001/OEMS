@@ -58,9 +58,9 @@ export const ResetPasswordPage = () => {
   if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4 text-center">
-        <div className="glass-card p-8 border-white/5">
-          <h1 className="text-xl text-red-400 font-bold mb-4">Invalid Link</h1>
-          <p className="text-gray-400 mb-6">The password reset link is missing or malformed.</p>
+        <div className="glass-card p-8 border-card-border">
+          <h1 className="text-xl text-red-500 font-bold mb-4">Invalid Link</h1>
+          <p className="text-foreground/60 mb-6">The password reset link is missing or malformed.</p>
           <Button onClick={() => navigate('/login')} variant="outline">Go to Login</Button>
         </div>
       </div>
@@ -70,12 +70,12 @@ export const ResetPasswordPage = () => {
   if (isSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4 text-center">
-        <div className="glass-card p-8 border-white/5 animate-fade-in">
+        <div className="glass-card p-8 border-card-border animate-fade-in">
           <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-green-500/30">
-            <ShieldCheck className="w-8 h-8 text-green-400" />
+            <ShieldCheck className="w-8 h-8 text-green-600" />
           </div>
-          <h1 className="text-2xl font-display font-bold text-white mb-2">Password Reset Successful</h1>
-          <p className="text-gray-400">Redirecting you to login...</p>
+          <h1 className="text-2xl font-display font-bold text-foreground mb-2">Password Reset Successful</h1>
+          <p className="text-foreground/60">Redirecting you to login...</p>
         </div>
       </div>
     );
@@ -83,13 +83,13 @@ export const ResetPasswordPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="glass-card w-full max-w-md p-8 border-white/5">
+      <div className="glass-card w-full max-w-md p-8 border-card-border">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 ring-1 ring-primary/30">
-            <Lock className="w-8 h-8 text-primary-light" />
+            <Lock className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-2xl font-display font-bold text-white tracking-tight">Set New Password</h1>
-          <p className="text-gray-400 mt-2 text-center">Choose a secure password for your account.</p>
+          <h1 className="text-2xl font-display font-bold text-foreground tracking-tight">Set New Password</h1>
+          <p className="text-foreground/60 mt-2 text-center">Choose a secure password for your account.</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -100,7 +100,7 @@ export const ResetPasswordPage = () => {
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-300 ml-1">New Password</label>
+            <label className="text-sm font-medium text-foreground/60 ml-1">New Password</label>
             <input
               {...register('password')}
               type="password"
@@ -111,7 +111,7 @@ export const ResetPasswordPage = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-300 ml-1">Confirm New Password</label>
+            <label className="text-sm font-medium text-foreground/60 ml-1">Confirm New Password</label>
             <input
               {...register('confirmPassword')}
               type="password"

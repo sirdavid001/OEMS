@@ -17,7 +17,7 @@ export class ExamsController {
   }
 
   @Get('my-exams')
-  @Roles(Role.ADMIN, Role.INSTRUCTOR, Role.DEAN, Role.HOD)
+  @Roles(Role.ADMIN, Role.LECTURER, Role.DEAN, Role.HOD)
   async findMyExams(@Req() req: any) {
     return this.examsService.findMyExams(req.user.userId);
   }
@@ -28,7 +28,7 @@ export class ExamsController {
   }
 
   @Post()
-  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  @Roles(Role.ADMIN, Role.LECTURER)
   async create(@Body() createExamDto: Prisma.ExamCreateInput, @Req() req: any) {
     return this.examsService.create({
       ...createExamDto,
@@ -37,13 +37,13 @@ export class ExamsController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  @Roles(Role.ADMIN, Role.LECTURER)
   async update(@Param('id') id: string, @Body() updateExamDto: any) {
     return this.examsService.update(id, updateExamDto);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  @Roles(Role.ADMIN, Role.LECTURER)
   async remove(@Param('id') id: string) {
     return this.examsService.delete(id);
   }
@@ -68,21 +68,33 @@ export class ExamsController {
 
   @Get('stats')
   async getStats(@Req() req: any) {
-    if (req.user.role === 'STUDENT') {
+    if (req.user.role === Role.STUDENT) {
       return this.examsService.getStudentStats(req.user.userId);
     }
-    return this.examsService.getInstructorStats(req.user.userId);
+    return this.examsService.getLecturerStats(req.user.userId);
   }
 
   @Get('attempt/:id/details')
-  @Roles(Role.STUDENT, Role.INSTRUCTOR)
+  @Roles(Role.STUDENT, Role.LECTURER)
   getAttemptDetails(@Param('id') id: string) {
     return this.examsService.getAttemptDetails(id);
   }
 
   @Get('attempt/:id/pdf')
-  @Roles(Role.STUDENT, Role.INSTRUCTOR)
+  @Roles(Role.STUDENT, Role.LECTURER)
   async downloadPdf(@Param('id') id: string, @Res() res: Response) {
     return this.examsService.generateResultPdf(id, res);
+  }
+
+  @Get(':id/attempts')
+  @Roles(Role.ADMIN, Role.LECTURER, Role.DEAN, Role.HOD)
+  async getAttempts(@Param('id') id: string) {
+    return this.examsService.getExamAttempts(id);
+  }
+
+  @Post('attempt/:id/grade')
+  @Roles(Role.ADMIN, Role.LECTURER)
+  async gradeAttempt(@Param('id') id: string, @Body('grades') grades: any[]) {
+    return this.examsService.gradeAttempt(id, grades);
   }
 }

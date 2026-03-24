@@ -4,27 +4,28 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        background: "#0a0a0c",
-        foreground: "#ffffff",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
         primary: {
-          DEFAULT: "#6d28d9",
-          hover: "#7c3aed",
-          light: "#a78bfa",
+          DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
+          light: "var(--primary-light)",
         },
         secondary: {
-          DEFAULT: "#1e1e24",
-          hover: "#2a2a32",
+          DEFAULT: "var(--secondary)",
+          hover: "var(--secondary-hover)",
         },
         accent: {
-          DEFAULT: "#f59e0b",
-          hover: "#fbbf24",
+          DEFAULT: "var(--accent)",
+          hover: "var(--accent-hover)",
         },
         card: {
-          DEFAULT: "rgba(30, 30, 36, 0.7)",
-          border: "rgba(255, 255, 255, 0.1)",
+          DEFAULT: "var(--card-bg)",
+          border: "var(--card-border)",
         },
       },
       fontFamily: {

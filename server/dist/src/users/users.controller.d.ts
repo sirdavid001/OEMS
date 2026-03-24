@@ -5,8 +5,9 @@ export declare class UsersController {
     updateProfile(req: any, data: any): Promise<{
         id: string;
         email: string;
+        phoneNumber: string | null;
         name: string;
-        password: string;
+        password: string | null;
         role: import("@prisma/client").$Enums.Role;
         status: import("@prisma/client").$Enums.UserStatus;
         registrationNumber: string | null;
@@ -19,8 +20,9 @@ export declare class UsersController {
     getPending(req: any): Promise<{
         id: string;
         email: string;
+        phoneNumber: string | null;
         name: string;
-        password: string;
+        password: string | null;
         role: import("@prisma/client").$Enums.Role;
         status: import("@prisma/client").$Enums.UserStatus;
         registrationNumber: string | null;
@@ -33,8 +35,9 @@ export declare class UsersController {
     updateStatus(req: any, id: string, status: 'APPROVED' | 'REJECTED'): Promise<{
         id: string;
         email: string;
+        phoneNumber: string | null;
         name: string;
-        password: string;
+        password: string | null;
         role: import("@prisma/client").$Enums.Role;
         status: import("@prisma/client").$Enums.UserStatus;
         registrationNumber: string | null;

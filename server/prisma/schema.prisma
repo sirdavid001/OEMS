@@ -14,7 +14,7 @@ datasource db {
 
 enum Role {
   ADMIN
-  INSTRUCTOR
+  LECTURER
   STUDENT
   DEAN
   HOD
@@ -41,8 +41,9 @@ enum AttemptStatus {
 model User {
   id            String         @id @default(uuid())
   email         String         @unique
+  phoneNumber   String?        @unique
   name          String
-  password      String
+  password      String?
   role          Role           @default(STUDENT)
   status        UserStatus     @default(PENDING)
   
@@ -61,7 +62,7 @@ model User {
   
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  examsCreated  Exam[]         @relation("InstructorExams")
+  examsCreated  Exam[]         @relation("LecturerExams")
   examAttempts  ExamAttempt[]
 }
 
@@ -81,7 +82,7 @@ model Exam {
   department    String?
   
   instructorId  String
-  instructor    User           @relation("InstructorExams", fields: [instructorId], references: [id])
+  instructor    User           @relation("LecturerExams", fields: [instructorId], references: [id])
   
   questions     Question[]
   attempts      ExamAttempt[]

@@ -57,12 +57,24 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
         this.prisma = prisma;
     }
-    async validateUser(email, pass) {
-        const user = await this.usersService.findByEmail(email);
+    async validateUser(identifier, pass) {
+        const user = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: identifier },
+                    { phoneNumber: identifier },
+                    { registrationNumber: identifier },
+                    { staffId: identifier },
+                ],
+            },
+        });
         if (!user)
             return null;
         if (user.status !== 'APPROVED') {
             throw new common_1.UnauthorizedException('Your account is pending approval by the Dean or HOD.');
+        }
+        if (!user.password) {
+            throw new common_1.UnauthorizedException('Account not yet finalized. Please check your email for credentials.');
         }
         if (await bcrypt.compare(pass, user.password)) {
             const { password, ...result } = user;
@@ -79,34 +91,40 @@ let AuthService = class AuthService {
                 email: user.email,
                 name: user.name,
                 role: user.role,
+                phoneNumber: user.phoneNumber,
+                registrationNumber: user.registrationNumber,
+                staffId: user.staffId,
             },
         };
     }
     async register(data) {
-        const existing = await this.usersService.findByEmail(data.email);
+        const existing = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: data.email },
+                    { phoneNumber: data.phoneNumber },
+                ]
+            }
+        });
         if (existing) {
-            throw new common_1.ConflictException('Email already exists');
+            throw new common_1.ConflictException('Email or Phone Number already exists');
         }
-        const hashedPassword = await bcrypt.hash(data.password, 10);
         const status = data.role === 'ADMIN' ? 'APPROVED' : 'PENDING';
         const user = await this.usersService.create({
             email: data.email,
+            phoneNumber: data.phoneNumber,
             name: data.name,
-            password: hashedPassword,
             role: data.role,
             status: status,
-            registrationNumber: data.registrationNumber,
-            staffId: data.staffId,
+            registrationNumber: data.role === 'STUDENT' ? data.registrationNumber : null,
+            staffId: data.role === 'LECTURER' ? data.staffId : null,
             faculty: data.faculty,
             department: data.department,
         });
-        if (user.status === 'PENDING') {
-            return {
-                message: 'Registration successful. Your account is pending approval by the Dean or HOD.',
-                user: { id: user.id, email: user.email, name: user.name, role: user.role, status: user.status }
-            };
-        }
-        return this.login(user);
+        return {
+            message: 'Registration successful. Your account is pending approval by the Dean or HOD. You will receive your login credentials via email once approved.',
+            user: { id: user.id, email: user.email, name: user.name, role: user.role, status: user.status }
+        };
     }
     async forgotPassword(email) {
         const user = await this.usersService.findByEmail(email);

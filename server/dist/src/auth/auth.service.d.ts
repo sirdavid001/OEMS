@@ -6,7 +6,7 @@ export declare class AuthService {
     private jwtService;
     private prisma;
     constructor(usersService: UsersService, jwtService: JwtService, prisma: PrismaService);
-    validateUser(email: string, pass: string): Promise<any>;
+    validateUser(identifier: string, pass: string): Promise<any>;
     login(user: any): Promise<{
         access_token: string;
         user: {
@@ -14,24 +14,19 @@ export declare class AuthService {
             email: any;
             name: any;
             role: any;
+            phoneNumber: any;
+            registrationNumber: any;
+            staffId: any;
         };
     }>;
     register(data: any): Promise<{
-        access_token: string;
-        user: {
-            id: any;
-            email: any;
-            name: any;
-            role: any;
-        };
-    } | {
         message: string;
         user: {
             id: string;
             email: string;
             name: string;
             role: import("@prisma/client").$Enums.Role;
-            status: "PENDING";
+            status: import("@prisma/client").$Enums.UserStatus;
         };
     }>;
     forgotPassword(email: string): Promise<{

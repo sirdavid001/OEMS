@@ -3,21 +3,13 @@ export declare class AuthController {
     private authService;
     constructor(authService: AuthService);
     register(registerDto: any): Promise<{
-        access_token: string;
-        user: {
-            id: any;
-            email: any;
-            name: any;
-            role: any;
-        };
-    } | {
         message: string;
         user: {
             id: string;
             email: string;
             name: string;
             role: import("@prisma/client").$Enums.Role;
-            status: "PENDING";
+            status: import("@prisma/client").$Enums.UserStatus;
         };
     }>;
     login(loginDto: any): Promise<{
@@ -27,6 +19,9 @@ export declare class AuthController {
             email: any;
             name: any;
             role: any;
+            phoneNumber: any;
+            registrationNumber: any;
+            staffId: any;
         };
     }>;
     forgotPassword(body: {

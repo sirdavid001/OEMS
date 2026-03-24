@@ -1,0 +1,5 @@
+Question,Type,Answer,Points,Options
+"What is the value of $x$ in $x^2 = 16$?",MCQ,a,5,"{""a"": ""4"", ""b"": ""8"", ""c"": ""2""}"
+"$\sum_{n=1}^{\infty} \frac{1}{n^2} = \dots$",MCQ,b,10,"{""a"": ""\infty"", ""b"": ""\frac{\pi^2}{6}"", ""c"": ""1""}"
+"The gravity on Earth is approximately $9.8 m/s^2$.",TRUE_FALSE,true,5,
+"Explain the second law of thermodynamics.",THEORY,,20,

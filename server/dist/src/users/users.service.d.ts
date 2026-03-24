@@ -1,8 +1,10 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
 declare const authUserSelect: {
     id: true;
     email: true;
+    phoneNumber: true;
     name: true;
     password: true;
     role: true;
@@ -19,11 +21,13 @@ type AuthUserRecord = Prisma.UserGetPayload<{
 }>;
 export declare class UsersService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private mailService;
+    constructor(prisma: PrismaService, mailService: MailService);
     findByEmail(email: string): Promise<AuthUserRecord | null>;
     findById(id: string): Promise<AuthUserRecord | null>;
     create(data: Prisma.UserCreateInput): Promise<AuthUserRecord>;
     update(id: string, data: Prisma.UserUpdateInput): Promise<AuthUserRecord>;
+    private generateRandomPassword;
     updateStatus(id: string, status: 'APPROVED' | 'REJECTED', approver: AuthUserRecord): Promise<AuthUserRecord>;
     getPendingApprovals(approver: AuthUserRecord): Promise<AuthUserRecord[]>;
 }
