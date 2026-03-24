@@ -291,50 +291,6 @@ let ExamsService = class ExamsService {
             });
         });
     }
-    async getStudentStats(userId) {
-        const attempts = await this.prisma.examAttempt.findMany({
-            where: { userId, status: { in: [client_1.AttemptStatus.SUBMITTED, client_1.AttemptStatus.GRADED] } },
-            include: { exam: true },
-        });
-        const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        const upcomingExams = await this.prisma.exam.findMany({
-            where: {
-                isPublished: true,
-                faculty: user?.faculty,
-                OR: [
-                    { department: user?.department },
-                    { department: null },
-                ],
-                startTime: { gt: new Date() },
-            },
-            orderBy: { startTime: 'asc' },
-            take: 2,
-        });
-        const totalExams = attempts.length;
-        const averageScore = totalExams > 0
-            ? attempts.reduce((acc, curr) => acc + curr.score, 0) / totalExams
-            : 0;
-        const totalMinutes = attempts.reduce((acc, curr) => acc + curr.exam.duration, 0);
-        const hoursSpent = Math.floor(totalMinutes / 60);
-        return {
-            totalExams,
-            completedExams: totalExams,
-            averageScore: Math.round(averageScore),
-            hoursSpent: `${hoursSpent}h`,
-            recentAttempts: attempts.slice(0, 3).map(a => ({
-                id: a.id,
-                examTitle: a.exam.title,
-                score: a.score,
-                date: a.submitTime || a.startTime,
-            })),
-            upcomingExams: upcomingExams.map(e => ({
-                id: e.id,
-                title: e.title,
-                date: e.startTime,
-                duration: e.duration,
-            })),
-        };
-    }
     async getLecturerStats(userId) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
