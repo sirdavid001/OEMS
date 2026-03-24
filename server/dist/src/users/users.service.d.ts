@@ -1,10 +1,23 @@
 import { PrismaService } from '../prisma/prisma.service';
-import { User, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+declare const authUserSelect: {
+    id: true;
+    email: true;
+    name: true;
+    password: true;
+    role: true;
+    createdAt: true;
+    updatedAt: true;
+};
+type AuthUserRecord = Prisma.UserGetPayload<{
+    select: typeof authUserSelect;
+}>;
 export declare class UsersService {
     private prisma;
     constructor(prisma: PrismaService);
-    findByEmail(email: string): Promise<User | null>;
-    findById(id: string): Promise<User | null>;
-    create(data: Prisma.UserCreateInput): Promise<User>;
-    update(id: string, data: Prisma.UserUpdateInput): Promise<User>;
+    findByEmail(email: string): Promise<AuthUserRecord | null>;
+    findById(id: string): Promise<AuthUserRecord | null>;
+    create(data: Prisma.UserCreateInput): Promise<AuthUserRecord>;
+    update(id: string, data: Prisma.UserUpdateInput): Promise<AuthUserRecord>;
 }
+export {};

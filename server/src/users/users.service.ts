@@ -1,27 +1,51 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { User, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+const authUserSelect = {
+  id: true,
+  email: true,
+  name: true,
+  password: true,
+  role: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.UserSelect;
+
+type AuthUserRecord = Prisma.UserGetPayload<{
+  select: typeof authUserSelect;
+}>;
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { email } });
+  async findByEmail(email: string): Promise<AuthUserRecord | null> {
+    return this.prisma.user.findUnique({
+      where: { email },
+      select: authUserSelect,
+    });
   }
 
-  async findById(id: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { id } });
+  async findById(id: string): Promise<AuthUserRecord | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: authUserSelect,
+    });
   }
 
-  async create(data: Prisma.UserCreateInput): Promise<User> {
-    return this.prisma.user.create({ data });
+  async create(data: Prisma.UserCreateInput): Promise<AuthUserRecord> {
+    return this.prisma.user.create({
+      data,
+      select: authUserSelect,
+    });
   }
 
-  async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
+  async update(id: string, data: Prisma.UserUpdateInput): Promise<AuthUserRecord> {
     return this.prisma.user.update({
       where: { id },
       data,
+      select: authUserSelect,
     });
   }
 }
