@@ -46,13 +46,16 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const users_service_1 = require("../users/users.service");
+const prisma_service_1 = require("../prisma/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
 let AuthService = class AuthService {
     usersService;
     jwtService;
-    constructor(usersService, jwtService) {
+    prisma;
+    constructor(usersService, jwtService, prisma) {
         this.usersService = usersService;
         this.jwtService = jwtService;
+        this.prisma = prisma;
     }
     async validateUser(email, pass) {
         const user = await this.usersService.findByEmail(email);
@@ -81,16 +84,54 @@ let AuthService = class AuthService {
         }
         const hashedPassword = await bcrypt.hash(data.password, 10);
         const user = await this.usersService.create({
-            ...data,
+            email: data.email,
+            name: data.name,
             password: hashedPassword,
+            role: data.role,
         });
         return this.login(user);
+    }
+    async forgotPassword(email) {
+        const user = await this.usersService.findByEmail(email);
+        if (!user) {
+            return { message: 'If an account exists, a reset link has been sent.' };
+        }
+        const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const resetTokenExpires = new Date(Date.now() + 3600000);
+        await this.usersService.update(user.id, {
+            resetToken,
+            resetTokenExpires,
+        });
+        console.log(`Password reset link: http://localhost:5173/reset-password?token=${resetToken}`);
+        return { message: 'If an account exists, a reset link has been sent.' };
+    }
+    async resetPassword(data) {
+        const { token, newPassword } = data;
+        const user = await this.prisma.user.findFirst({
+            where: {
+                resetToken: token,
+                resetTokenExpires: {
+                    gt: new Date(),
+                },
+            },
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException('Invalid or expired reset token');
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await this.usersService.update(user.id, {
+            password: hashedPassword,
+            resetToken: null,
+            resetTokenExpires: null,
+        });
+        return { message: 'Password reset successful' };
     }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        prisma_service_1.PrismaService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

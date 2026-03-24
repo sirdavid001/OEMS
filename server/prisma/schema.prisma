@@ -4,7 +4,8 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -35,6 +36,8 @@ model User {
   name          String
   password      String
   role          Role           @default(STUDENT)
+  resetToken    String?
+  resetTokenExpires DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   examsCreated  Exam[]         @relation("InstructorExams")

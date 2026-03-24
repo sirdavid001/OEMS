@@ -8,6 +8,8 @@ import { ExamsListPage } from './pages/ExamsListPage';
 import { ResultsPage } from './pages/ResultsPage';
 import { CreateExamPage } from './pages/CreateExamPage';
 import { UserManagementPage } from './pages/UserManagementPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ExamInterfacePage } from './pages/ExamInterfacePage';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { useAuthStore } from './store/authStore';
@@ -26,6 +28,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route
             path="/dashboard/*"
             element={

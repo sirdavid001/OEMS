@@ -79,8 +79,8 @@ export const LoginPage = () => {
 
           <div className="space-y-2">
             <div className="flex justify-between items-center px-1">
-              <label className="text-sm font-medium text-gray-300">Password</label>
-              <a href="#" className="text-xs text-primary-light hover:underline">Forgot password?</a>
+               <label className="text-sm font-medium text-gray-300">Password</label>
+               <Link to="/forgot-password" className="text-xs text-primary-light hover:underline">Forgot password?</Link>
             </div>
             <input
               {...register('password')}
