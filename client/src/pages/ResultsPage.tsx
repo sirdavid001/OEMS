@@ -12,16 +12,12 @@ export const ResultsPage = () => {
   const { data: results, isLoading } = useQuery({
     queryKey: ['results'],
     queryFn: async () => {
-      await api.get('/exams/results (to be implemented)'); // Placeholder
-      // Mocking for now to show UI
-      return [
-        { id: '1', exam: { title: 'Advanced Mathematics II' }, score: 88, status: 'SUBMITTED', submitTime: new Date() },
-        { id: '2', exam: { title: 'Introduction to Web Security' }, score: 92, status: 'SUBMITTED', submitTime: new Date() },
-      ];
+      const res = await api.get('/exams/results');
+      return res.data;
     },
   });
 
-  if (isLoading) return <div className="text-white">Loading results...</div>;
+  if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center text-white italic">Retrieving your achievements...</div>;
 
   return (
     <div className="space-y-8">
@@ -67,24 +63,29 @@ export const ResultsPage = () => {
             <h3 className="text-xl font-display font-bold text-white">Recent Submissions</h3>
             {results?.map((result: any) => (
               <div key={result.id} className="glass-card p-6 border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:border-primary/30 transition-all">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
+                <Link to={`/dashboard/results/${result.id}`} className="flex items-center gap-4 flex-1">
+                  <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-colors">
                     <Award className="w-8 h-8 text-primary-light" />
                   </div>
                   <div>
                     <h3 className="text-xl font-display font-bold text-white">{result.exam.title}</h3>
                     <p className="text-sm text-gray-500">Submitted on {new Date(result.submitTime).toLocaleDateString()}</p>
                   </div>
-                </div>
+                </Link>
                 <div className="flex items-center gap-8">
                   <div className="text-center">
                     <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mb-1">Score</p>
                     <p className={`text-2xl font-display font-bold ${result.score >= 80 ? 'text-green-400' : 'text-amber-400'}`}>{result.score}%</p>
                   </div>
                   <div className="h-10 w-px bg-white/5 mx-2 hidden md:block"></div>
-                  <Button size="sm" variant="outline" className="ml-4" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/exams/attempt/${result.id}/pdf`, '_blank')}>
-                    Get Certificate
-                  </Button>
+                  <div className="flex gap-2">
+                    <Link to={`/dashboard/results/${result.id}`}>
+                      <Button size="sm" variant="ghost">Details</Button>
+                    </Link>
+                    <Button size="sm" variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/exams/attempt/${result.id}/pdf`, '_blank')}>
+                      Certificate
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

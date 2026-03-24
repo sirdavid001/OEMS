@@ -51,6 +51,12 @@ let ExamsController = class ExamsController {
     getResults(req) {
         return this.examsService.getResults(req.user.userId);
     }
+    getStudentStats(req) {
+        return this.examsService.getStudentStats(req.user.userId);
+    }
+    getAttemptDetails(id) {
+        return this.examsService.getAttemptDetails(id);
+    }
     async downloadPdf(id, res) {
         return this.examsService.generateResultPdf(id, res);
     }
@@ -121,6 +127,22 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], ExamsController.prototype, "getResults", null);
+__decorate([
+    (0, common_1.Get)('stats'),
+    (0, roles_decorator_1.Roles)(client_1.Role.STUDENT),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ExamsController.prototype, "getStudentStats", null);
+__decorate([
+    (0, common_1.Get)('attempt/:id/details'),
+    (0, roles_decorator_1.Roles)(client_1.Role.STUDENT, client_1.Role.INSTRUCTOR),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ExamsController.prototype, "getAttemptDetails", null);
 __decorate([
     (0, common_1.Get)('attempt/:id/pdf'),
     (0, roles_decorator_1.Roles)(client_1.Role.STUDENT, client_1.Role.INSTRUCTOR),

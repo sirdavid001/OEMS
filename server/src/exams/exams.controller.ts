@@ -60,6 +60,18 @@ export class ExamsController {
     return this.examsService.getResults(req.user.userId);
   }
 
+  @Get('stats')
+  @Roles(Role.STUDENT)
+  getStudentStats(@Req() req: any) {
+    return this.examsService.getStudentStats(req.user.userId);
+  }
+
+  @Get('attempt/:id/details')
+  @Roles(Role.STUDENT, Role.INSTRUCTOR)
+  getAttemptDetails(@Param('id') id: string) {
+    return this.examsService.getAttemptDetails(id);
+  }
+
   @Get('attempt/:id/pdf')
   @Roles(Role.STUDENT, Role.INSTRUCTOR)
   async downloadPdf(@Param('id') id: string, @Res() res: Response) {

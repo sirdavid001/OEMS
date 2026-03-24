@@ -10,6 +10,8 @@ import { CreateExamPage } from './pages/CreateExamPage';
 import { UserManagementPage } from './pages/UserManagementPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { ResultDetailsPage } from './pages/ResultDetailsPage';
 import { ExamInterfacePage } from './pages/ExamInterfacePage';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { useAuthStore } from './store/authStore';
@@ -40,8 +42,12 @@ function App() {
                     <Route path="exams" element={<ExamsListPage />} />
                     <Route path="create-exam" element={<CreateExamPage />} />
                     <Route path="users" element={<UserManagementPage />} />
+import { ProfilePage } from './pages/ProfilePage';
+import { ResultDetailsPage } from './pages/ResultDetailsPage';
+// ...
                     <Route path="results" element={<ResultsPage />} />
-                    <Route path="profile" element={<div>Profile (To be implemented)</div>} />
+                    <Route path="results/:id" element={<ResultDetailsPage />} />
+                    <Route path="profile" element={<ProfilePage />} />
                   </Routes>
                 </DashboardLayout>
               </ProtectedRoute>

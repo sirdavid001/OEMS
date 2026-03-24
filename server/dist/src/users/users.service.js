@@ -45,9 +45,14 @@ let UsersService = class UsersService {
         });
     }
     async update(id, data) {
+        const updateData = { ...data };
+        if (data.password && typeof data.password === 'string') {
+            const bcrypt = require('bcrypt');
+            updateData.password = await bcrypt.hash(data.password, 10);
+        }
         return this.prisma.user.update({
             where: { id },
-            data,
+            data: updateData,
             select: authUserSelect,
         });
     }

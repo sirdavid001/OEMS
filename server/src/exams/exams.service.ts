@@ -121,8 +121,55 @@ export class ExamsService {
 
   async getResults(userId: string) {
     return this.prisma.examAttempt.findMany({
-      where: { userId },
+      where: { userId, status: AttemptStatus.SUBMITTED },
+      include: { exam: true },
+      orderBy: { submitTime: 'desc' },
+    });
+  }
+
+  async getStudentStats(userId: string) {
+    const attempts = await this.prisma.examAttempt.findMany({
+      where: { userId, status: AttemptStatus.SUBMITTED },
       include: { exam: true },
     });
+
+    const totalExams = attempts.length;
+    const averageScore = totalExams > 0 
+      ? attempts.reduce((acc, curr) => acc + curr.score, 0) / totalExams 
+      : 0;
+    
+    // Simple mock for "Hours Spent" based on exam durations
+    const totalMinutes = attempts.reduce((acc, curr) => acc + curr.exam.duration, 0);
+    const hoursSpent = Math.floor(totalMinutes / 60);
+
+    return {
+      totalExams,
+      completedExams: totalExams,
+      averageScore: Math.round(averageScore),
+      hoursSpent: `${hoursSpent}h`,
+      recentAttempts: attempts.slice(0, 3).map(a => ({
+        id: a.id,
+        examTitle: a.exam.title,
+        score: a.score,
+        date: a.submitTime,
+      })),
+    };
+  }
+
+  async getAttemptDetails(attemptId: string) {
+    const attempt = await this.prisma.examAttempt.findUnique({
+      where: { id: attemptId },
+      include: {
+        exam: {
+          include: {
+            questions: true,
+          },
+        },
+        answers: true,
+      },
+    });
+
+    if (!attempt) throw new NotFoundException('Attempt not found');
+    return attempt;
   }
 }

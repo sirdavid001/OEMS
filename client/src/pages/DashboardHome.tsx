@@ -1,15 +1,29 @@
 import { useAuthStore } from '../store/authStore';
+import { useQuery } from '@tanstack/react-query';
+import api from '../services/api';
+import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { 
   Users, 
   FileText, 
   CheckCircle, 
   Clock, 
-  ArrowUpRight 
+  ArrowUpRight,
+  TrendingUp,
+  Settings
 } from 'lucide-react';
 
 export const DashboardHome = () => {
   const { user } = useAuthStore();
+  
+  const { data: studentStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['student-stats'],
+    queryFn: async () => {
+      const res = await api.get('/exams/stats');
+      return res.data;
+    },
+    enabled: user?.role === 'STUDENT',
+  });
 
   const stats = user?.role === 'ADMIN' ? [
     { name: 'Total Users', value: '1,280', icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10' },
@@ -17,10 +31,10 @@ export const DashboardHome = () => {
     { name: 'System Load', value: '18%', icon: ArrowUpRight, color: 'text-amber-400', bg: 'bg-amber-400/10' },
     { name: 'Total Revenue', value: '$12k', icon: Clock, color: 'text-purple-400', bg: 'bg-purple-400/10' },
   ] : [
-    { name: 'Active Exams', value: '12', icon: FileText, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-    { name: 'Completed', value: '48', icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10' },
-    { name: 'Average Score', value: '84%', icon: ArrowUpRight, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-    { name: 'Hours Spent', value: '24h', icon: Clock, color: 'text-purple-400', bg: 'bg-purple-400/10' },
+    { name: 'Active Exams', value: statsLoading ? '...' : studentStats?.totalExams || '0', icon: FileText, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+    { name: 'Completed', value: statsLoading ? '...' : studentStats?.completedExams || '0', icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10' },
+    { name: 'Average Score', value: statsLoading ? '...' : `${studentStats?.averageScore || 0}%`, icon: TrendingUp, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    { name: 'Hours Spent', value: statsLoading ? '...' : studentStats?.hoursSpent || '0h', icon: Clock, color: 'text-purple-400', bg: 'bg-purple-400/10' },
   ];
 
   return (
@@ -52,27 +66,35 @@ export const DashboardHome = () => {
         {/* Recent Exams */}
         <div className="glass-card p-6 border-white/5">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-display font-bold text-white">Recent Exams</h3>
-            <button className="text-sm text-primary-light hover:underline">See All</button>
+            <h3 className="text-xl font-display font-bold text-white">Recent Activity</h3>
+            <Link to="/dashboard/results" className="text-sm text-primary-light hover:underline">See All</Link>
           </div>
           <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors cursor-pointer group">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <FileText className="w-6 h-6 text-gray-400 group-hover:text-primary-light" />
+            {statsLoading ? (
+              <div className="text-gray-500 italic p-4">Loading stats...</div>
+            ) : studentStats?.recentAttempts?.length > 0 ? (
+              studentStats.recentAttempts.map((attempt: any) => (
+                <Link to={`/dashboard/results/${attempt.id}`} key={attempt.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-primary/20 transition-all cursor-pointer group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <FileText className="w-6 h-6 text-gray-400 group-hover:text-primary-light" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-white">{attempt.examTitle}</h4>
+                      <p className="text-xs text-gray-500">{new Date(attempt.date).toLocaleDateString()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-medium text-white">Advanced Mathematics II</h4>
-                    <p className="text-xs text-gray-500">Instructor: Dr. Sarah Smith</p>
+                  <div className="text-right">
+                    <p className={`text-sm font-bold ${attempt.score >= 80 ? 'text-green-400' : 'text-amber-400'}`}>{attempt.score}%</p>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-widest">Score</p>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-white font-medium">88%</p>
-                  <p className="text-xs text-green-500">Passed</p>
-                </div>
+                </Link>
+              ))
+            ) : (
+              <div className="text-center py-10 text-gray-500 glass-card border-dashed">
+                No recent activity. Start an exam to see your results here!
               </div>
-            ))}
+            )}
           </div>
         </div>
 
