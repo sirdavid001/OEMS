@@ -6,7 +6,21 @@ import { Plus, Trash2, Save, FileText, Target, ChevronDown, Upload, Eye, EyeOff 
 import api from '../services/api';
 import { ACADEMIC_DATA } from '../constants/academicData';
 import { MathContent } from '../components/ui/MathContent';
-import Papa from 'papaparse';
+import * as Papa from 'papaparse';
+import type { ParseResult } from 'papaparse';
+
+type ImportedQuestionRow = {
+  Question?: string;
+  text?: string;
+  Type?: string;
+  type?: string;
+  Points?: string;
+  points?: string;
+  Answer?: string;
+  answer?: string;
+  Options?: string;
+  options?: string;
+};
 
 export const CreateExamPage = () => {
   const navigate = useNavigate();
@@ -45,11 +59,11 @@ export const CreateExamPage = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    Papa.parse(file, {
+    Papa.parse<ImportedQuestionRow>(file, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
-        const importedQuestions = results.data.map((row: any) => ({
+      complete: (results: ParseResult<ImportedQuestionRow>) => {
+        const importedQuestions = results.data.map((row) => ({
           text: row.Question || row.text || '',
           type: (row.Type || row.type || 'MCQ').toUpperCase(),
           points: parseInt(row.Points || row.points || '5'),
@@ -65,7 +79,7 @@ export const CreateExamPage = () => {
           });
         }
       },
-      error: (err) => {
+      error: (err: Error) => {
         setError('Error parsing CSV file');
         console.error(err);
       }
