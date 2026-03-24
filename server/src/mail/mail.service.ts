@@ -1,16 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
-  private resend: Resend;
-  private fromEmail = 'OEMS <onboarding@resend.dev>';
+  private readonly logger = new Logger(MailService.name);
+  private readonly resend?: Resend;
+  private readonly fromEmail =
+    process.env.MAIL_FROM_EMAIL || 'OEMS <onboarding@resend.dev>';
 
   constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY);
+    const apiKey = process.env.RESEND_API_KEY;
+
+    if (!apiKey) {
+      this.logger.warn(
+        'RESEND_API_KEY is not configured. Email delivery is disabled; messages will be logged instead.',
+      );
+      return;
+    }
+
+    this.resend = new Resend(apiKey);
   }
 
   private async sendMail(to: string, subject: string, body: string) {
+    if (!this.resend) {
+      this.logger.warn(
+        `Email delivery skipped because RESEND_API_KEY is missing. Intended recipient: ${to}`,
+      );
+      console.log('--- FALLBACK ENVELOPE ---');
+      console.log(`To: ${to}`);
+      console.log(`Subject: ${subject}`);
+      console.log(body);
+      return false;
+    }
+
     try {
       const { data, error } = await this.resend.emails.send({
         from: this.fromEmail,
@@ -20,14 +42,14 @@ export class MailService {
       });
 
       if (error) {
-        console.error('Resend Error:', error);
+        this.logger.error(`Resend Error: ${JSON.stringify(error)}`);
         return false;
       }
 
-      console.log('Resend Success:', data?.id);
+      this.logger.log(`Resend Success: ${data?.id}`);
       return true;
     } catch (err) {
-      console.error('Mail Delivery Failed:', err);
+      this.logger.error(`Mail Delivery Failed: ${err instanceof Error ? err.message : String(err)}`);
       // Fallback to console log in dev if Resend fails/no key
       console.log('--- FALLBACK ENVELOPE ---');
       console.log(`To: ${to}`);
