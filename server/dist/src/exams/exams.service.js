@@ -18,9 +18,40 @@ let ExamsService = class ExamsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findAll() {
+    async findAll(user) {
+        const where = {
+            isPublished: true,
+        };
+        if (user.role === 'ADMIN') {
+            delete where.isPublished;
+        }
+        else if (user.role === 'STUDENT') {
+            where.OR = [
+                { faculty: null, department: null },
+                { faculty: user.faculty, department: null },
+                { faculty: user.faculty, department: user.department }
+            ];
+        }
+        else if (user.role === 'INSTRUCTOR' || user.role === 'DEAN' || user.role === 'HOD') {
+            where.OR = [
+                { instructorId: user.id },
+                { faculty: user.faculty }
+            ];
+        }
         return this.prisma.exam.findMany({
-            include: { instructor: { select: { name: true } } },
+            where,
+            include: {
+                instructor: { select: { name: true } },
+                _count: { select: { questions: true } }
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+    async findMyExams(instructorId) {
+        return this.prisma.exam.findMany({
+            where: { instructorId },
+            include: { _count: { select: { questions: true, attempts: true } } },
+            orderBy: { createdAt: 'desc' },
         });
     }
     async findOne(id) {
@@ -33,7 +64,25 @@ let ExamsService = class ExamsService {
         return exam;
     }
     async create(data) {
-        return this.prisma.exam.create({ data });
+        const { questions, ...examData } = data;
+        return this.prisma.$transaction(async (tx) => {
+            const exam = await tx.exam.create({
+                data: {
+                    ...examData,
+                    questions: {
+                        create: questions.map((q) => ({
+                            type: q.type,
+                            content: q.content || q.text,
+                            options: q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : null,
+                            answer: q.answer,
+                            points: parseInt(q.points) || 1,
+                        }))
+                    }
+                },
+                include: { questions: true }
+            });
+            return exam;
+        });
     }
     async update(id, data) {
         return this.prisma.exam.update({ where: { id }, data });
@@ -164,6 +213,28 @@ let ExamsService = class ExamsService {
         if (!attempt)
             throw new common_1.NotFoundException('Attempt not found');
         return attempt;
+    }
+    async getInstructorStats(userId) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { _count: { select: { examsCreated: true } } }
+        });
+        const exams = await this.prisma.exam.findMany({
+            where: { instructorId: userId },
+            include: { _count: { select: { attempts: true } } }
+        });
+        const totalAttempts = exams.reduce((acc, curr) => acc + curr._count.attempts, 0);
+        return {
+            totalExams: user?._count.examsCreated || 0,
+            totalAttempts,
+            activeExams: exams.filter(e => e.isPublished).length,
+            recentCreated: exams.slice(0, 3).map(e => ({
+                id: e.id,
+                title: e.title,
+                attempts: e._count.attempts,
+                date: e.createdAt,
+            })),
+        };
     }
 };
 exports.ExamsService = ExamsService;

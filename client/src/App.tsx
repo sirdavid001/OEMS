@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LoginPage } from './pages/LoginPage';
@@ -13,6 +12,7 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ResultDetailsPage } from './pages/ResultDetailsPage';
 import { ExamInterfacePage } from './pages/ExamInterfacePage';
+import { InstructorExamsPage } from './pages/InstructorExamsPage';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { useAuthStore } from './store/authStore';
 
@@ -40,11 +40,9 @@ function App() {
                   <Routes>
                     <Route index element={<DashboardHome />} />
                     <Route path="exams" element={<ExamsListPage />} />
+                    <Route path="instructor-exams" element={<InstructorExamsPage />} />
                     <Route path="create-exam" element={<CreateExamPage />} />
                     <Route path="users" element={<UserManagementPage />} />
-import { ProfilePage } from './pages/ProfilePage';
-import { ResultDetailsPage } from './pages/ResultDetailsPage';
-// ...
                     <Route path="results" element={<ResultsPage />} />
                     <Route path="results/:id" element={<ResultDetailsPage />} />
                     <Route path="profile" element={<ProfilePage />} />

@@ -2,19 +2,23 @@ import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { Plus, Trash2, Save, FileText } from 'lucide-react';
+import { Plus, Trash2, Save, FileText, Target, ChevronDown } from 'lucide-react';
 import api from '../services/api';
+import { ACADEMIC_DATA } from '../constants/academicData';
 
 export const CreateExamPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
 
-  const { register, control, handleSubmit } = useForm({
+  const { register, control, handleSubmit, watch, setValue } = useForm({
     defaultValues: {
       title: '',
       description: '',
       duration: 60,
-      questions: [{ text: '', type: 'MCQ', points: 5, answer: '', options: '{"a": "", "b": "", "c": "", "d": ""}' }]
+      faculty: '',
+      department: '',
+      questions: [{ text: '', type: 'MCQ', points: 5, answer: '', options: '{"a": "", "b": "", "c": ""}' }]
     }
   });
 
@@ -23,50 +27,56 @@ export const CreateExamPage = () => {
     name: "questions"
   });
 
+  const selectedFaculty = watch('faculty');
+  const availableDepartments = React.useMemo(() => {
+    const faculty = ACADEMIC_DATA.find(f => f.name === selectedFaculty);
+    return faculty ? faculty.departments : [];
+  }, [selectedFaculty]);
+
+  React.useEffect(() => {
+    setValue('department', '');
+  }, [selectedFaculty, setValue]);
+
   const onSubmit = async (data: any) => {
     setIsLoading(true);
+    setError('');
     try {
-      // 1. Create Exam
-      const examRes = await api.post('/exams', {
-        title: data.title,
-        description: data.description,
+      // Create Exam with Questions in one go
+      await api.post('/exams', {
+        ...data,
         duration: parseInt(data.duration),
+        isPublished: true, // Default to published for now
       });
       
-      const examId = examRes.data.id;
-
-      // 2. Add Questions
-      for (const q of data.questions) {
-        await api.post('/questions', {
-          ...q,
-          examId,
-          points: parseInt(q.points)
-        });
-      }
-
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to create exam', err);
-      alert('Error creating exam. Please check your data.');
+      setError(err.response?.data?.message || 'Error creating exam. Please check your data.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-display font-bold text-white">Create New Examination</h1>
           <p className="text-gray-400 mt-1">Design your assessment with questions and scoring rules.</p>
         </div>
-        <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading} className="gap-2">
+        <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading} className="gap-2 px-8">
           <Save className="w-5 h-5" />
           Publish Exam
         </Button>
       </div>
 
       <form className="space-y-8">
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-xl text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Basic Info */}
         <div className="glass-card p-8 border-white/5 space-y-6">
           <div className="flex items-center gap-3 text-primary-light mb-2">
@@ -89,11 +99,49 @@ export const CreateExamPage = () => {
           </div>
         </div>
 
+        {/* Targeting Info */}
+        <div className="glass-card p-8 border-white/5 space-y-6">
+          <div className="flex items-center gap-3 text-primary-light mb-2">
+            <Target className="w-5 h-5" />
+            <h3 className="font-bold uppercase tracking-widest text-sm">Target Audience</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2 relative">
+              <label className="text-sm font-medium text-gray-400">Faculty (Optional)</label>
+              <div className="relative">
+                <select {...register('faculty')} className="input-field w-full appearance-none pr-10">
+                  <option value="">All Faculties</option>
+                  {ACADEMIC_DATA.map(f => (
+                    <option key={f.name} value={f.name}>{f.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+            <div className="space-y-2 relative">
+              <label className="text-sm font-medium text-gray-400">Department (Optional)</label>
+              <div className="relative">
+                <select 
+                  {...register('department')} 
+                  className="input-field w-full appearance-none pr-10"
+                  disabled={!selectedFaculty}
+                >
+                  <option value="">All Departments</option>
+                  {availableDepartments.map(dept => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Questions Section */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-display font-bold text-white">Questions Palette</h3>
-            <Button type="button" variant="secondary" size="sm" onClick={() => append({ text: '', type: 'MCQ', points: 5, answer: '', options: '{"a": "", "b": "", "c": "", "d": ""}' })} className="gap-2">
+            <Button type="button" variant="secondary" size="sm" onClick={() => append({ text: '', type: 'MCQ', points: 5, answer: '', options: '{"a": "", "b": "", "c": ""}' })} className="gap-2">
               <Plus className="w-4 h-4" />
               Add Question
             </Button>
@@ -134,7 +182,7 @@ export const CreateExamPage = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 uppercase">Correct Answer (Key)</label>
-                        <input {...register(`questions.${index}.answer` as const)} className="input-field w-full" placeholder="e.g. a" />
+                        <input {...register(`questions.${index}.answer` as const)} className="input-field w-full" placeholder="e.g. a or true" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 uppercase">Points</label>
@@ -142,10 +190,13 @@ export const CreateExamPage = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-gray-500 uppercase">Options (JSON format for MCQ)</label>
-                      <input {...register(`questions.${index}.options` as const)} className="input-field w-full font-mono text-sm" />
-                    </div>
+                    {watch(`questions.${index}.type`) === 'MCQ' && (
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase">Options (JSON Object)</label>
+                        <input {...register(`questions.${index}.options` as const)} className="input-field w-full font-mono text-sm" placeholder='{"a": "Option A", "b": "Option B"}' />
+                        <p className="text-[10px] text-gray-500 italic">Format: {"{\"a\": \"...\", \"b\": \"...\"}"}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

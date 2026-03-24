@@ -76,6 +76,10 @@ model Exam {
   randomized    Boolean        @default(false)
   passPercentage Int           @default(40)
   
+  // Targeting
+  faculty       String?
+  department    String?
+  
   instructorId  String
   instructor    User           @relation("InstructorExams", fields: [instructorId], references: [id])
   

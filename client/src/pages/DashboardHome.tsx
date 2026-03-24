@@ -9,33 +9,50 @@ import {
   CheckCircle, 
   Clock, 
   ArrowUpRight,
-  TrendingUp,
-  Settings
+  TrendingUp
 } from 'lucide-react';
 
 export const DashboardHome = () => {
   const { user } = useAuthStore();
   
-  const { data: studentStats, isLoading: statsLoading } = useQuery({
-    queryKey: ['student-stats'],
+  const { data: dashboardStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['dashboard-stats', user?.role],
     queryFn: async () => {
       const res = await api.get('/exams/stats');
       return res.data;
     },
-    enabled: user?.role === 'STUDENT',
+    enabled: !!user,
   });
 
-  const stats = user?.role === 'ADMIN' ? [
-    { name: 'Total Users', value: '1,280', icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-    { name: 'Active Exams', value: '42', icon: FileText, color: 'text-green-400', bg: 'bg-green-400/10' },
-    { name: 'System Load', value: '18%', icon: ArrowUpRight, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-    { name: 'Total Revenue', value: '$12k', icon: Clock, color: 'text-purple-400', bg: 'bg-purple-400/10' },
-  ] : [
-    { name: 'Active Exams', value: statsLoading ? '...' : studentStats?.totalExams || '0', icon: FileText, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-    { name: 'Completed', value: statsLoading ? '...' : studentStats?.completedExams || '0', icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10' },
-    { name: 'Average Score', value: statsLoading ? '...' : `${studentStats?.averageScore || 0}%`, icon: TrendingUp, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-    { name: 'Hours Spent', value: statsLoading ? '...' : studentStats?.hoursSpent || '0h', icon: Clock, color: 'text-purple-400', bg: 'bg-purple-400/10' },
-  ];
+  const getStats = () => {
+    if (user?.role === 'ADMIN') {
+      return [
+        { name: 'Total Users', value: '1,280', icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+        { name: 'Active Exams', value: '42', icon: FileText, color: 'text-green-400', bg: 'bg-green-400/10' },
+        { name: 'System Load', value: '18%', icon: ArrowUpRight, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+        { name: 'Total Revenue', value: '$12k', icon: Clock, color: 'text-purple-400', bg: 'bg-purple-400/10' },
+      ];
+    }
+    
+    if (user?.role === 'STUDENT') {
+      return [
+        { name: 'Active Exams', value: statsLoading ? '...' : dashboardStats?.totalExams || '0', icon: FileText, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+        { name: 'Completed', value: statsLoading ? '...' : dashboardStats?.completedExams || '0', icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10' },
+        { name: 'Average Score', value: statsLoading ? '...' : `${dashboardStats?.averageScore || 0}%`, icon: TrendingUp, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+        { name: 'Hours Spent', value: statsLoading ? '...' : dashboardStats?.hoursSpent || '0h', icon: Clock, color: 'text-purple-400', bg: 'bg-purple-400/10' },
+      ];
+    }
+
+    // INSTRUCTOR, DEAN, HOD
+    return [
+      { name: 'Exams Created', value: statsLoading ? '...' : dashboardStats?.totalExams || '0', icon: FileText, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+      { name: 'Total Attempts', value: statsLoading ? '...' : dashboardStats?.totalAttempts || '0', icon: Users, color: 'text-green-400', bg: 'bg-green-400/10' },
+      { name: 'Active Now', value: statsLoading ? '...' : dashboardStats?.activeExams || '0', icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+      { name: 'Growth', value: '+12%', icon: ArrowUpRight, color: 'text-purple-400', bg: 'bg-purple-400/10' },
+    ];
+  };
+
+  const stats = getStats();
 
   return (
     <div className="space-y-8">
@@ -72,28 +89,55 @@ export const DashboardHome = () => {
           <div className="space-y-4">
             {statsLoading ? (
               <div className="text-gray-500 italic p-4">Loading stats...</div>
-            ) : studentStats?.recentAttempts?.length > 0 ? (
-              studentStats.recentAttempts.map((attempt: any) => (
-                <Link to={`/dashboard/results/${attempt.id}`} key={attempt.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-primary/20 transition-all cursor-pointer group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <FileText className="w-6 h-6 text-gray-400 group-hover:text-primary-light" />
+            ) : user?.role === 'STUDENT' ? (
+              dashboardStats?.recentAttempts?.length > 0 ? (
+                dashboardStats.recentAttempts.map((attempt: any) => (
+                  <Link to={`/dashboard/results/${attempt.id}`} key={attempt.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-primary/20 transition-all cursor-pointer group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <FileText className="w-6 h-6 text-gray-400 group-hover:text-primary-light" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-white">{attempt.examTitle}</h4>
+                        <p className="text-xs text-gray-500">{new Date(attempt.date).toLocaleDateString()}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-white">{attempt.examTitle}</h4>
-                      <p className="text-xs text-gray-500">{new Date(attempt.date).toLocaleDateString()}</p>
+                    <div className="text-right">
+                      <p className={`text-sm font-bold ${attempt.score >= 80 ? 'text-green-400' : 'text-amber-400'}`}>{attempt.score}%</p>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest">Score</p>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-bold ${attempt.score >= 80 ? 'text-green-400' : 'text-amber-400'}`}>{attempt.score}%</p>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-widest">Score</p>
-                  </div>
-                </Link>
-              ))
+                  </Link>
+                ))
+              ) : (
+                <div className="text-center py-10 text-gray-500 glass-card border-dashed">
+                  No recent activity. Start an exam to see your results here!
+                </div>
+              )
             ) : (
-              <div className="text-center py-10 text-gray-500 glass-card border-dashed">
-                No recent activity. Start an exam to see your results here!
-              </div>
+              // INSTRUCTOR/ADMIN Activity
+              dashboardStats?.recentCreated?.length > 0 ? (
+                dashboardStats.recentCreated.map((exam: any) => (
+                  <div key={exam.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-primary/20 transition-all group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <FileText className="w-6 h-6 text-gray-400 group-hover:text-primary-light" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-white">{exam.title}</h4>
+                        <p className="text-xs text-gray-500">{new Date(exam.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-primary-light">{exam.attempts}</p>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest">Attempts</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-10 text-gray-500 glass-card border-dashed">
+                  No exams created yet. Click 'Create Exam' to get started!
+                </div>
+              )
             )}
           </div>
         </div>

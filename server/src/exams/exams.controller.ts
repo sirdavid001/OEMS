@@ -12,8 +12,14 @@ export class ExamsController {
   constructor(private readonly examsService: ExamsService) {}
 
   @Get()
-  async findAll() {
-    return this.examsService.findAll();
+  async findAll(@Req() req: any) {
+    return this.examsService.findAll(req.user);
+  }
+
+  @Get('my-exams')
+  @Roles(Role.ADMIN, Role.INSTRUCTOR, Role.DEAN, Role.HOD)
+  async findMyExams(@Req() req: any) {
+    return this.examsService.findMyExams(req.user.userId);
   }
 
   @Get(':id')
@@ -61,9 +67,11 @@ export class ExamsController {
   }
 
   @Get('stats')
-  @Roles(Role.STUDENT)
-  getStudentStats(@Req() req: any) {
-    return this.examsService.getStudentStats(req.user.userId);
+  async getStats(@Req() req: any) {
+    if (req.user.role === 'STUDENT') {
+      return this.examsService.getStudentStats(req.user.userId);
+    }
+    return this.examsService.getInstructorStats(req.user.userId);
   }
 
   @Get('attempt/:id/details')

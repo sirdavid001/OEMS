@@ -10,7 +10,8 @@ import {
   X,
   PlusCircle,
   BarChart2,
-  Users
+  Users,
+  FileText
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -26,13 +27,13 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   };
 
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['STUDENT', 'INSTRUCTOR', 'ADMIN'] },
-    { name: 'Exams', icon: BookOpen, path: '/dashboard/exams', roles: ['STUDENT', 'INSTRUCTOR'] },
+    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['STUDENT', 'INSTRUCTOR', 'ADMIN', 'DEAN', 'HOD'] },
+    { name: 'Take Exam', icon: BookOpen, path: '/dashboard/exams', roles: ['STUDENT'] },
+    { name: 'My Exams', icon: FileText, path: '/dashboard/instructor-exams', roles: ['INSTRUCTOR', 'DEAN', 'HOD', 'ADMIN'] },
     { name: 'Create Exam', icon: PlusCircle, path: '/dashboard/create-exam', roles: ['INSTRUCTOR', 'ADMIN'] },
-    { name: 'Users', icon: Users, path: '/dashboard/users', roles: ['ADMIN'] },
+    { name: 'Manage Users', icon: Users, path: '/dashboard/users', roles: ['ADMIN', 'DEAN', 'HOD'] },
     { name: 'Results', icon: BarChart2, path: '/dashboard/results', roles: ['STUDENT', 'INSTRUCTOR', 'ADMIN'] },
-    { name: 'Analytics', icon: BarChart2, path: '/dashboard/analytics', roles: ['INSTRUCTOR', 'STUDENT', 'ADMIN'] },
-    { name: 'Profile', icon: User, path: '/dashboard/profile', roles: ['STUDENT', 'INSTRUCTOR', 'ADMIN'] },
+    { name: 'Profile', icon: User, path: '/dashboard/profile', roles: ['STUDENT', 'INSTRUCTOR', 'ADMIN', 'DEAN', 'HOD'] },
   ];
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(user?.role || ''));

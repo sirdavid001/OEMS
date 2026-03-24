@@ -4,14 +4,15 @@ import type { Response } from 'express';
 export declare class ExamsController {
     private readonly examsService;
     constructor(examsService: ExamsService);
-    findAll(): Promise<({
+    findAll(req: any): Promise<({
         instructor: {
             name: string;
         };
+        _count: {
+            questions: number;
+        };
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string | null;
         duration: number;
@@ -20,24 +21,47 @@ export declare class ExamsController {
         isPublished: boolean;
         randomized: boolean;
         passPercentage: number;
+        faculty: string | null;
+        department: string | null;
         instructorId: string;
+        createdAt: Date;
+        updatedAt: Date;
+    })[]>;
+    findMyExams(req: any): Promise<({
+        _count: {
+            questions: number;
+            attempts: number;
+        };
+    } & {
+        id: string;
+        title: string;
+        description: string | null;
+        duration: number;
+        startTime: Date | null;
+        endTime: Date | null;
+        isPublished: boolean;
+        randomized: boolean;
+        passPercentage: number;
+        faculty: string | null;
+        department: string | null;
+        instructorId: string;
+        createdAt: Date;
+        updatedAt: Date;
     })[]>;
     findOne(id: string): Promise<{
         questions: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            examId: string;
             type: import("@prisma/client").$Enums.QuestionType;
             content: string;
             options: Prisma.JsonValue | null;
             answer: string;
             points: number;
+            examId: string;
         }[];
     } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string | null;
         duration: number;
@@ -46,12 +70,26 @@ export declare class ExamsController {
         isPublished: boolean;
         randomized: boolean;
         passPercentage: number;
+        faculty: string | null;
+        department: string | null;
         instructorId: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     create(createExamDto: Prisma.ExamCreateInput, req: any): Promise<{
+        questions: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            type: import("@prisma/client").$Enums.QuestionType;
+            content: string;
+            options: Prisma.JsonValue | null;
+            answer: string;
+            points: number;
+            examId: string;
+        }[];
+    } & {
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string | null;
         duration: number;
@@ -60,12 +98,14 @@ export declare class ExamsController {
         isPublished: boolean;
         randomized: boolean;
         passPercentage: number;
+        faculty: string | null;
+        department: string | null;
         instructorId: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     update(id: string, updateExamDto: any): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string | null;
         duration: number;
@@ -74,12 +114,14 @@ export declare class ExamsController {
         isPublished: boolean;
         randomized: boolean;
         passPercentage: number;
+        faculty: string | null;
+        department: string | null;
         instructorId: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     remove(id: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string | null;
         duration: number;
@@ -88,35 +130,37 @@ export declare class ExamsController {
         isPublished: boolean;
         randomized: boolean;
         passPercentage: number;
+        faculty: string | null;
+        department: string | null;
         instructorId: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     startAttempt(req: any, id: string): Promise<{
         id: string;
-        status: import("@prisma/client").$Enums.AttemptStatus;
+        startTime: Date;
         createdAt: Date;
         updatedAt: Date;
-        startTime: Date;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        examId: string;
         submitTime: Date | null;
         score: number;
-        examId: string;
         userId: string;
     }>;
     submitAttempt(id: string, answers: any[]): Promise<{
         id: string;
-        status: import("@prisma/client").$Enums.AttemptStatus;
+        startTime: Date;
         createdAt: Date;
         updatedAt: Date;
-        startTime: Date;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        examId: string;
         submitTime: Date | null;
         score: number;
-        examId: string;
         userId: string;
     }>;
     getResults(req: any): Promise<({
         exam: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             title: string;
             description: string | null;
             duration: number;
@@ -125,20 +169,24 @@ export declare class ExamsController {
             isPublished: boolean;
             randomized: boolean;
             passPercentage: number;
+            faculty: string | null;
+            department: string | null;
             instructorId: string;
+            createdAt: Date;
+            updatedAt: Date;
         };
     } & {
         id: string;
-        status: import("@prisma/client").$Enums.AttemptStatus;
+        startTime: Date;
         createdAt: Date;
         updatedAt: Date;
-        startTime: Date;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        examId: string;
         submitTime: Date | null;
         score: number;
-        examId: string;
         userId: string;
     })[]>;
-    getStudentStats(req: any): Promise<{
+    getStats(req: any): Promise<{
         totalExams: number;
         completedExams: number;
         averageScore: number;
@@ -149,6 +197,16 @@ export declare class ExamsController {
             score: number;
             date: Date | null;
         }[];
+    } | {
+        totalExams: number;
+        totalAttempts: number;
+        activeExams: number;
+        recentCreated: {
+            id: string;
+            title: string;
+            attempts: number;
+            date: Date;
+        }[];
     }>;
     getAttemptDetails(id: string): Promise<{
         exam: {
@@ -156,17 +214,15 @@ export declare class ExamsController {
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                examId: string;
                 type: import("@prisma/client").$Enums.QuestionType;
                 content: string;
                 options: Prisma.JsonValue | null;
                 answer: string;
                 points: number;
+                examId: string;
             }[];
         } & {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
             title: string;
             description: string | null;
             duration: number;
@@ -175,25 +231,29 @@ export declare class ExamsController {
             isPublished: boolean;
             randomized: boolean;
             passPercentage: number;
+            faculty: string | null;
+            department: string | null;
             instructorId: string;
+            createdAt: Date;
+            updatedAt: Date;
         };
         answers: {
             id: string;
-            attemptId: string;
             response: string;
             pointsEarned: number;
             feedback: string | null;
+            attemptId: string;
             questionId: string;
         }[];
     } & {
         id: string;
-        status: import("@prisma/client").$Enums.AttemptStatus;
+        startTime: Date;
         createdAt: Date;
         updatedAt: Date;
-        startTime: Date;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        examId: string;
         submitTime: Date | null;
         score: number;
-        examId: string;
         userId: string;
     }>;
     downloadPdf(id: string, res: Response): Promise<void>;

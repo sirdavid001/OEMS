@@ -6,9 +6,43 @@ import { Exam, Prisma, ExamAttempt, AttemptStatus } from '@prisma/client';
 export class ExamsService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(user: any) {
+    const where: Prisma.ExamWhereInput = {
+      isPublished: true,
+    };
+
+    if (user.role === 'ADMIN') {
+      delete where.isPublished; // Admin sees all
+    } else if (user.role === 'STUDENT') {
+      // Student sees exams targeted at their faculty/dept OR general ones
+      where.OR = [
+        { faculty: null, department: null },
+        { faculty: user.faculty, department: null },
+        { faculty: user.faculty, department: user.department }
+      ];
+    } else if (user.role === 'INSTRUCTOR' || user.role === 'DEAN' || user.role === 'HOD') {
+      // Instructors see exams they created OR ones in their faculty
+      where.OR = [
+        { instructorId: user.id },
+        { faculty: user.faculty }
+      ];
+    }
+
     return this.prisma.exam.findMany({
-      include: { instructor: { select: { name: true } } },
+      where,
+      include: { 
+        instructor: { select: { name: true } },
+        _count: { select: { questions: true } }
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findMyExams(instructorId: string) {
+    return this.prisma.exam.findMany({
+      where: { instructorId },
+      include: { _count: { select: { questions: true, attempts: true } } },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -21,8 +55,27 @@ export class ExamsService {
     return exam;
   }
 
-  async create(data: Prisma.ExamCreateInput) {
-    return this.prisma.exam.create({ data });
+  async create(data: any) {
+    const { questions, ...examData } = data;
+    
+    return this.prisma.$transaction(async (tx) => {
+      const exam = await tx.exam.create({
+        data: {
+          ...examData,
+          questions: {
+            create: questions.map((q: any) => ({
+              type: q.type,
+              content: q.content || q.text, // Handle both payload styles
+              options: q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : null,
+              answer: q.answer,
+              points: parseInt(q.points) || 1,
+            }))
+          }
+        },
+        include: { questions: true }
+      });
+      return exam;
+    });
   }
 
   async update(id: string, data: Prisma.ExamUpdateInput) {
@@ -171,5 +224,30 @@ export class ExamsService {
 
     if (!attempt) throw new NotFoundException('Attempt not found');
     return attempt;
+  }
+  async getInstructorStats(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { _count: { select: { examsCreated: true } } }
+    });
+
+    const exams = await this.prisma.exam.findMany({
+      where: { instructorId: userId },
+      include: { _count: { select: { attempts: true } } }
+    });
+
+    const totalAttempts = exams.reduce((acc, curr) => acc + curr._count.attempts, 0);
+    
+    return {
+      totalExams: user?._count.examsCreated || 0,
+      totalAttempts,
+      activeExams: exams.filter(e => e.isPublished).length,
+      recentCreated: exams.slice(0, 3).map(e => ({
+        id: e.id,
+        title: e.title,
+        attempts: e._count.attempts,
+        date: e.createdAt,
+      })),
+    };
   }
 }

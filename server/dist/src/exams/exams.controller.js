@@ -24,8 +24,11 @@ let ExamsController = class ExamsController {
     constructor(examsService) {
         this.examsService = examsService;
     }
-    async findAll() {
-        return this.examsService.findAll();
+    async findAll(req) {
+        return this.examsService.findAll(req.user);
+    }
+    async findMyExams(req) {
+        return this.examsService.findMyExams(req.user.userId);
     }
     async findOne(id) {
         return this.examsService.findOne(id);
@@ -51,8 +54,11 @@ let ExamsController = class ExamsController {
     getResults(req) {
         return this.examsService.getResults(req.user.userId);
     }
-    getStudentStats(req) {
-        return this.examsService.getStudentStats(req.user.userId);
+    async getStats(req) {
+        if (req.user.role === 'STUDENT') {
+            return this.examsService.getStudentStats(req.user.userId);
+        }
+        return this.examsService.getInstructorStats(req.user.userId);
     }
     getAttemptDetails(id) {
         return this.examsService.getAttemptDetails(id);
@@ -64,10 +70,19 @@ let ExamsController = class ExamsController {
 exports.ExamsController = ExamsController;
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('my-exams'),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.INSTRUCTOR, client_1.Role.DEAN, client_1.Role.HOD),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ExamsController.prototype, "findMyExams", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
@@ -129,12 +144,11 @@ __decorate([
 ], ExamsController.prototype, "getResults", null);
 __decorate([
     (0, common_1.Get)('stats'),
-    (0, roles_decorator_1.Roles)(client_1.Role.STUDENT),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], ExamsController.prototype, "getStudentStats", null);
+    __metadata("design:returntype", Promise)
+], ExamsController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)('attempt/:id/details'),
     (0, roles_decorator_1.Roles)(client_1.Role.STUDENT, client_1.Role.INSTRUCTOR),
