@@ -21,23 +21,37 @@ let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
     }
+    async getUsers(req) {
+        const user = await this.usersService.findById(req.user.userId);
+        if (!user)
+            return [];
+        return this.usersService.getManagedUsers(user);
+    }
     updateProfile(req, data) {
         return this.usersService.update(req.user.userId, data);
     }
     async getPending(req) {
-        const user = await this.usersService.findById(req.user.sub);
+        const user = await this.usersService.findById(req.user.userId);
         if (!user)
             return [];
         return this.usersService.getPendingApprovals(user);
     }
     async updateStatus(req, id, status) {
-        const approver = await this.usersService.findById(req.user.sub);
+        const approver = await this.usersService.findById(req.user.userId);
         if (!approver)
             throw new Error('Approver not found');
         return this.usersService.updateStatus(id, status, approver);
     }
 };
 exports.UsersController = UsersController;
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getUsers", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Patch)('profile'),

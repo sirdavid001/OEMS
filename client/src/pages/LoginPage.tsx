@@ -82,13 +82,22 @@ export const LoginPage = () => {
                <label className="text-sm font-medium text-foreground/60">Password</label>
                <Link to="/forgot-password" university-theme-aware="true" className="text-xs text-primary hover:underline font-medium">Forgot password?</Link>
             </div>
-            <input
-              {...register('password')}
-              type="password"
-              className="input-field w-full"
-              placeholder="••••••••"
-              autoComplete="current-password"
-            />
+            <div className="relative group">
+              <input
+                {...register('password')}
+                type={showPassword ? 'text' : 'password'}
+                className="input-field w-full pr-12 transition-all duration-300 focus:ring-primary/20"
+                placeholder="••••••••"
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg text-foreground/40 hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
             {errors.password && <p className="text-xs text-red-500 ml-1">{errors.password.message}</p>}
           </div>
 

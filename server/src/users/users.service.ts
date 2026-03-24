@@ -131,6 +131,30 @@ export class UsersService {
     return updatedUser;
   }
 
+  async getManagedUsers(approver: AuthUserRecord): Promise<AuthUserRecord[]> {
+    const where: Prisma.UserWhereInput = {
+      status: { not: 'PENDING' },
+    };
+
+    if (approver.role === 'ADMIN') {
+      // Admin sees all active users
+    } else if (approver.role === 'DEAN') {
+      where.faculty = approver.faculty;
+      where.role = { in: [Role.HOD, Role.STUDENT, Role.LECTURER] };
+    } else if (approver.role === 'HOD') {
+      where.department = approver.department;
+      where.role = 'STUDENT';
+    } else {
+      return [];
+    }
+
+    return this.prisma.user.findMany({
+      where,
+      select: authUserSelect,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async getPendingApprovals(approver: AuthUserRecord): Promise<AuthUserRecord[]> {
     const where: Prisma.UserWhereInput = {
       status: 'PENDING',

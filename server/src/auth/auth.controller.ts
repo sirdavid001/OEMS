@@ -12,8 +12,9 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginDto: any) {
+    const identifier = loginDto.identifier || loginDto.email;
     const user = await this.authService.validateUser(
-      loginDto.email,
+      identifier,
       loginDto.password,
     );
     if (!user) {

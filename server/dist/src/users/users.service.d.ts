@@ -29,6 +29,7 @@ export declare class UsersService {
     update(id: string, data: Prisma.UserUpdateInput): Promise<AuthUserRecord>;
     private generateRandomPassword;
     updateStatus(id: string, status: 'APPROVED' | 'REJECTED', approver: AuthUserRecord): Promise<AuthUserRecord>;
+    getManagedUsers(approver: AuthUserRecord): Promise<AuthUserRecord[]>;
     getPendingApprovals(approver: AuthUserRecord): Promise<AuthUserRecord[]>;
 }
 export {};

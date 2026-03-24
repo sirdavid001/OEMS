@@ -24,7 +24,8 @@ let AuthController = class AuthController {
         return this.authService.register(registerDto);
     }
     async login(loginDto) {
-        const user = await this.authService.validateUser(loginDto.email, loginDto.password);
+        const identifier = loginDto.identifier || loginDto.email;
+        const user = await this.authService.validateUser(identifier, loginDto.password);
         if (!user) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }

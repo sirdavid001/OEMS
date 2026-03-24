@@ -7,6 +7,14 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
+  @Get()
+  async getUsers(@Req() req: any) {
+    const user = await this.usersService.findById(req.user.userId);
+    if (!user) return [];
+    return this.usersService.getManagedUsers(user);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch('profile')
   updateProfile(@Req() req: any, @Body() data: any) {
     return this.usersService.update(req.user.userId, data);
@@ -15,7 +23,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('pending')
   async getPending(@Req() req: any) {
-    const user = await this.usersService.findById(req.user.sub);
+    const user = await this.usersService.findById(req.user.userId);
     if (!user) return [];
     return this.usersService.getPendingApprovals(user);
   }
@@ -23,7 +31,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
   async updateStatus(@Req() req: any, @Param('id') id: string, @Body('status') status: 'APPROVED' | 'REJECTED') {
-    const approver = await this.usersService.findById(req.user.sub);
+    const approver = await this.usersService.findById(req.user.userId);
     if (!approver) throw new Error('Approver not found');
     return this.usersService.updateStatus(id, status, approver);
   }

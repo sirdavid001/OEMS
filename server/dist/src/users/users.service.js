@@ -116,6 +116,29 @@ let UsersService = class UsersService {
         }
         return updatedUser;
     }
+    async getManagedUsers(approver) {
+        const where = {
+            status: { not: 'PENDING' },
+        };
+        if (approver.role === 'ADMIN') {
+        }
+        else if (approver.role === 'DEAN') {
+            where.faculty = approver.faculty;
+            where.role = { in: [client_1.Role.HOD, client_1.Role.STUDENT, client_1.Role.LECTURER] };
+        }
+        else if (approver.role === 'HOD') {
+            where.department = approver.department;
+            where.role = 'STUDENT';
+        }
+        else {
+            return [];
+        }
+        return this.prisma.user.findMany({
+            where,
+            select: authUserSelect,
+            orderBy: { createdAt: 'desc' },
+        });
+    }
     async getPendingApprovals(approver) {
         const where = {
             status: 'PENDING',
