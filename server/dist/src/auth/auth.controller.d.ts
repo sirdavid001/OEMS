@@ -10,6 +10,15 @@ export declare class AuthController {
             name: any;
             role: any;
         };
+    } | {
+        message: string;
+        user: {
+            id: string;
+            email: string;
+            name: string;
+            role: import("@prisma/client").$Enums.Role;
+            status: "PENDING";
+        };
     }>;
     login(loginDto: any): Promise<{
         access_token: string;

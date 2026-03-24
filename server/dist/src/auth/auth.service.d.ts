@@ -24,6 +24,15 @@ export declare class AuthService {
             name: any;
             role: any;
         };
+    } | {
+        message: string;
+        user: {
+            id: string;
+            email: string;
+            name: string;
+            role: import("@prisma/client").$Enums.Role;
+            status: "PENDING";
+        };
     }>;
     forgotPassword(email: string): Promise<{
         message: string;

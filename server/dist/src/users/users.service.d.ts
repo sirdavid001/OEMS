@@ -6,6 +6,11 @@ declare const authUserSelect: {
     name: true;
     password: true;
     role: true;
+    status: true;
+    registrationNumber: true;
+    staffId: true;
+    faculty: true;
+    department: true;
     createdAt: true;
     updatedAt: true;
 };
@@ -19,5 +24,7 @@ export declare class UsersService {
     findById(id: string): Promise<AuthUserRecord | null>;
     create(data: Prisma.UserCreateInput): Promise<AuthUserRecord>;
     update(id: string, data: Prisma.UserUpdateInput): Promise<AuthUserRecord>;
+    updateStatus(id: string, status: 'APPROVED' | 'REJECTED', approver: AuthUserRecord): Promise<AuthUserRecord>;
+    getPendingApprovals(approver: AuthUserRecord): Promise<AuthUserRecord[]>;
 }
 export {};

@@ -16,6 +16,14 @@ enum Role {
   ADMIN
   INSTRUCTOR
   STUDENT
+  DEAN
+  HOD
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum QuestionType {
@@ -36,8 +44,21 @@ model User {
   name          String
   password      String
   role          Role           @default(STUDENT)
+  status        UserStatus     @default(PENDING)
+  
+  // Student specific
+  registrationNumber String?
+  
+  // Staff/Lecturer specific
+  staffId       String?
+  
+  // Academic info
+  faculty       String?
+  department    String?
+
   resetToken    String?
   resetTokenExpires DateTime?
+  
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   examsCreated  Exam[]         @relation("InstructorExams")
